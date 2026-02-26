@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import MyRecords from "./pages/MyRecords";
+import LabReports from "./pages/LabReports";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { isAuthenticated, isLoading } = useAuth();
@@ -33,6 +35,14 @@ export default function App() {
                     <Route
                         path="/dashboard"
                         element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+                    />
+                    <Route
+                        path="/records"
+                        element={<ProtectedRoute><MyRecords /></ProtectedRoute>}
+                    />
+                    <Route
+                        path="/lab-reports"
+                        element={<ProtectedRoute><LabReports /></ProtectedRoute>}
                     />
                     <Route path="*" element={<Navigate to="/login" replace />} />
                 </Routes>

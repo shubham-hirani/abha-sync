@@ -17,6 +17,12 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
     environment: str = "development"
 
+    # AWS S3
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    aws_s3_bucket_name: str = "abha-sync-records"
+    aws_s3_region: str = "ap-south-1"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",")]

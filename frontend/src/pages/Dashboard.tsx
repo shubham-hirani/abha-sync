@@ -27,25 +27,26 @@ export default function Dashboard() {
                     </div>
                     <h2 className="welcome-title">Welcome!</h2>
                     <p className="welcome-email">{user?.email}</p>
-                    {!user?.consent_given && (
-                        <div className="alert-banner">
-                            ⚠️ Please accept the privacy policy to enable all features.
-                        </div>
-                    )}
+
                 </div>
 
                 <div className="feature-grid">
                     {[
-                        { icon: "📄", title: "My Records", desc: "View digitized health records" },
+                        { icon: "📄", title: "My Records", desc: "View digitized health records", link: "/records" },
                         { icon: "💊", title: "Generic Drugs", desc: "Find affordable alternatives" },
                         { icon: "📍", title: "Kendra Finder", desc: "Locate Jan Aushadhi stores" },
-                        { icon: "🔬", title: "Lab Reports", desc: "Understand your test results" },
+                        { icon: "🔬", title: "Lab Reports", desc: "Understand your test results", link: "/lab-reports" },
                     ].map((f) => (
-                        <div key={f.title} className="feature-card">
+                        <div
+                            key={f.title}
+                            className={`feature-card ${f.link ? "clickable" : ""}`}
+                            onClick={() => f.link && navigate(f.link)}
+                            style={f.link ? { cursor: "pointer" } : undefined}
+                        >
                             <div className="feature-icon">{f.icon}</div>
                             <h3 className="feature-title">{f.title}</h3>
                             <p className="feature-desc">{f.desc}</p>
-                            <span className="feature-badge">Coming soon</span>
+                            {!f.link && <span className="feature-badge">Coming soon</span>}
                         </div>
                     ))}
                 </div>

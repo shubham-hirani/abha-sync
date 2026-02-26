@@ -55,4 +55,22 @@ export const authApi = {
     getMe: () => api.get("/api/v1/auth/me"),
 };
 
+export const recordsApi = {
+    upload: (file: File, recordType: string, notes: string) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("record_type", recordType);
+        formData.append("notes", notes);
+        return api.post("/api/v1/records/upload", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    },
+
+    list: () => api.get("/api/v1/records"),
+
+    getOne: (id: string) => api.get(`/api/v1/records/${id}`),
+
+    delete: (id: string) => api.delete(`/api/v1/records/${id}`),
+};
+
 export default api;
