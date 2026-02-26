@@ -44,11 +44,11 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-    sendOtp: (phone: string) =>
-        api.post("/api/v1/auth/send-otp", { phone }),
+    signup: (email: string, password: string, consentGiven: boolean) =>
+        api.post("/api/v1/auth/signup", { email, password, consent_given: consentGiven }),
 
-    verifyOtp: (phone: string, token: string, consentGiven: boolean) =>
-        api.post("/api/v1/auth/verify-otp", { phone, token, consent_given: consentGiven }),
+    login: (email: string, password: string) =>
+        api.post("/api/v1/auth/login", { email, password }),
 
     logout: () => api.post("/api/v1/auth/logout"),
 

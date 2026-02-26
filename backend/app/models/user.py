@@ -16,9 +16,8 @@ class User(Base):
         server_default=text("gen_random_uuid()"),
     )
     supabase_uid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
-    phone_number: Mapped[str] = mapped_column(String(20), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     abha_number: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
-    email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(5), default="en")
     consent_given: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -32,9 +31,8 @@ class User(Base):
         return {
             "user_id": str(self.user_id),
             "supabase_uid": self.supabase_uid,
-            "phone_number": self.phone_number,
-            "abha_number": self.abha_number,
             "email": self.email,
+            "abha_number": self.abha_number,
             "preferred_language": self.preferred_language,
             "consent_given": self.consent_given,
             "created_at": self.created_at.isoformat() if self.created_at else None,

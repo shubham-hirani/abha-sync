@@ -1,79 +1,34 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import OTPInput from "../components/OTPInput";
-
-type Step = "phone" | "otp";
 
 export default function Login() {
-    const { sendOtp, login } = useAuth();
+    const { login } = useAuth();
     const navigate = useNavigate();
 
-    const [step, setStep] = useState<Step>("phone");
-    const [phone, setPhone] = useState("+91");
-    const [otp, setOtp] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [resendTimer, setResendTimer] = useState(0);
 
-    const startResendTimer = () => {
-        setResendTimer(30);
-        const interval = setInterval(() => {
-            setResendTimer((t) => {
-                if (t <= 1) { clearInterval(interval); return 0; }
-                return t - 1;
-            });
-        }, 1000);
-    };
-
-    const handleSendOtp = async (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
-        if (!phone.match(/^\+[1-9]\d{9,14}$/)) {
-            setError("Enter a valid mobile number with country code, e.g. +919876543210");
+        if (!email) {
+            setError("Please enter your email address.");
+            return;
+        }
+        if (!password) {
+            setError("Please enter your password.");
             return;
         }
         setLoading(true);
         try {
-            await sendOtp(phone);
-            setStep("otp");
-            startResendTimer();
-        } catch (err: unknown) {
-            const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-            setError(msg || "Failed to send OTP. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError("");
-        if (otp.length !== 6) {
-            setError("Please enter the 6-digit OTP.");
-            return;
-        }
-        setLoading(true);
-        try {
-            await login(phone, otp);
+            await login(email, password);
             navigate("/dashboard");
         } catch (err: unknown) {
             const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-            setError(msg || "Invalid OTP. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleResend = async () => {
-        if (resendTimer > 0) return;
-        setError("");
-        setLoading(true);
-        try {
-            await sendOtp(phone);
-            startResendTimer();
-        } catch {
-            setError("Failed to resend OTP.");
+            setError(msg || "Invalid email or password. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -89,69 +44,49 @@ export default function Login() {
                     <p className="brand-tagline">Your digital health record companion</p>
                 </div>
 
-                {step === "phone" ? (
-                    <form onSubmit={handleSendOtp} className="auth-form">
-                        <h2 className="form-title">Welcome back</h2>
-                        <p className="form-subtitle">Enter your mobile number to sign in</p>
+                <form onSubmit={handleLogin} className="auth-form">
+                    <h2 className="form-title">Welcome back</h2>
+                    <p className="form-subtitle">Sign in with your email and password</p>
 
-                        <div className="input-group">
-                            <label htmlFor="phone" className="input-label">Mobile Number</label>
-                            <input
-                                id="phone"
-                                type="tel"
-                                className="text-input"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                placeholder="+919876543210"
-                                autoComplete="tel"
-                                required
-                            />
-                        </div>
+                    <div className="input-group">
+                        <label htmlFor="email" className="input-label">Email</label>
+                        <input
+                            id="email"
+                            type="email"
+                            className="text-input"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            autoComplete="email"
+                            required
+                        />
+                    </div>
 
-                        {error && <p className="error-msg">{error}</p>}
+                    <div className="input-group">
+                        <label htmlFor="password" className="input-label">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            className="text-input"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="Enter your password"
+                            autoComplete="current-password"
+                            required
+                        />
+                    </div>
 
-                        <button type="submit" className="btn-primary" disabled={loading}>
-                            {loading ? <span className="spinner" /> : "Send OTP"}
-                        </button>
+                    {error && <p className="error-msg">{error}</p>}
 
-                        <p className="auth-switch">
-                            New user?{" "}
-                            <Link to="/signup" className="auth-link">Create account</Link>
-                        </p>
-                    </form>
-                ) : (
-                    <form onSubmit={handleVerifyOtp} className="auth-form">
-                        <h2 className="form-title">Enter OTP</h2>
-                        <p className="form-subtitle">
-                            We sent a 6-digit code to <strong>{phone}</strong>
-                        </p>
+                    <button type="submit" className="btn-primary" disabled={loading}>
+                        {loading ? <span className="spinner" /> : "Sign In"}
+                    </button>
 
-                        <OTPInput value={otp} onChange={setOtp} disabled={loading} />
-
-                        {error && <p className="error-msg">{error}</p>}
-
-                        <button type="submit" className="btn-primary" disabled={loading || otp.length !== 6}>
-                            {loading ? <span className="spinner" /> : "Verify & Sign In"}
-                        </button>
-
-                        <div className="resend-row">
-                            {resendTimer > 0 ? (
-                                <span className="resend-timer">Resend OTP in {resendTimer}s</span>
-                            ) : (
-                                <button type="button" className="btn-ghost" onClick={handleResend}>
-                                    Resend OTP
-                                </button>
-                            )}
-                            <button
-                                type="button"
-                                className="btn-ghost"
-                                onClick={() => { setStep("phone"); setOtp(""); setError(""); }}
-                            >
-                                Change number
-                            </button>
-                        </div>
-                    </form>
-                )}
+                    <p className="auth-switch">
+                        New user?{" "}
+                        <Link to="/signup" className="auth-link">Create account</Link>
+                    </p>
+                </form>
             </div>
         </div>
     );

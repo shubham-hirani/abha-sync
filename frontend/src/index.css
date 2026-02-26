@@ -3,25 +3,33 @@
    Design: Dark glassmorphism with health-tech feel
 ═══════════════════════════════════════════════════ */
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 :root {
   --primary: #00c9a7;
   --primary-dark: #00a98f;
   --accent: #4f8ef7;
   --bg: #0a0e1a;
-  --bg-card: rgba(255,255,255,0.04);
-  --border: rgba(255,255,255,0.1);
+  --bg-card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.1);
   --text: #e8eaf6;
   --text-muted: #8892b0;
   --error: #ff6b6b;
   --success: #00c9a7;
   --radius: 16px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   --font: 'Inter', system-ui, sans-serif;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   height: 100%;
   font-family: var(--font);
   background: var(--bg);
@@ -37,8 +45,8 @@ html, body, #root {
   justify-content: center;
   padding: 24px;
   background:
-    radial-gradient(ellipse 70% 50% at 80% 20%, rgba(0,201,167,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(79,142,247,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 80% 20%, rgba(0, 201, 167, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 20% 80%, rgba(79, 142, 247, 0.10) 0%, transparent 60%),
     var(--bg);
 }
 
@@ -55,8 +63,15 @@ html, body, #root {
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ── Brand ── */
@@ -69,7 +84,7 @@ html, body, #root {
   font-size: 48px;
   display: block;
   margin-bottom: 8px;
-  filter: drop-shadow(0 0 12px rgba(0,201,167,0.5));
+  filter: drop-shadow(0 0 12px rgba(0, 201, 167, 0.5));
 }
 
 .brand-name {
@@ -122,7 +137,7 @@ html, body, #root {
 .text-input {
   width: 100%;
   padding: 13px 16px;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border);
   border-radius: 10px;
   color: var(--text);
@@ -134,43 +149,13 @@ html, body, #root {
 
 .text-input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
+  box-shadow: 0 0 0 3px rgba(0, 201, 167, 0.15);
 }
 
-.text-input::placeholder { color: var(--text-muted); }
-
-/* ── OTP Input ── */
-.otp-input-group {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
+.text-input::placeholder {
+  color: var(--text-muted);
 }
 
-.otp-box {
-  width: 48px;
-  height: 56px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 700;
-  background: rgba(255,255,255,0.05);
-  border: 1.5px solid var(--border);
-  border-radius: 12px;
-  color: var(--text);
-  outline: none;
-  transition: border-color 0.2s, transform 0.1s, box-shadow 0.2s;
-  caret-color: var(--primary);
-}
-
-.otp-box:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(0,201,167,0.15);
-  transform: scale(1.05);
-}
-
-.otp-box.filled {
-  border-color: var(--primary);
-  background: rgba(0,201,167,0.08);
-}
 
 /* ── Buttons ── */
 .btn-primary {
@@ -189,9 +174,19 @@ html, body, #root {
   gap: 8px;
 }
 
-.btn-primary:hover:not(:disabled) { opacity: 0.9; transform: translateY(-1px); }
-.btn-primary:active:not(:disabled) { transform: translateY(0); }
-.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .btn-ghost {
   background: none;
@@ -203,7 +198,10 @@ html, body, #root {
   padding: 4px 0;
   transition: opacity 0.2s;
 }
-.btn-ghost:hover { opacity: 0.8; }
+
+.btn-ghost:hover {
+  opacity: 0.8;
+}
 
 .btn-outline {
   padding: 8px 18px;
@@ -216,7 +214,11 @@ html, body, #root {
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s;
 }
-.btn-outline:hover { border-color: var(--primary); background: rgba(0,201,167,0.07); }
+
+.btn-outline:hover {
+  border-color: var(--primary);
+  background: rgba(0, 201, 167, 0.07);
+}
 
 /* ── Consent ── */
 .consent-label {
@@ -242,23 +244,13 @@ html, body, #root {
 .error-msg {
   font-size: 13px;
   color: var(--error);
-  background: rgba(255,107,107,0.1);
-  border: 1px solid rgba(255,107,107,0.2);
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.2);
   border-radius: 8px;
   padding: 10px 14px;
 }
 
-/* ── Resend row ── */
-.resend-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
 
-.resend-timer {
-  font-size: 13px;
-  color: var(--text-muted);
-}
 
 /* ── Auth links ── */
 .auth-switch {
@@ -272,26 +264,34 @@ html, body, #root {
   text-decoration: none;
   font-weight: 500;
 }
-.auth-link:hover { text-decoration: underline; }
+
+.auth-link:hover {
+  text-decoration: underline;
+}
 
 /* ── Spinner ── */
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2.5px solid rgba(0,0,0,0.3);
+  border: 2.5px solid rgba(0, 0, 0, 0.3);
   border-top-color: #0a0e1a;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
 }
+
 .spinner.large {
   width: 40px;
   height: 40px;
   border-top-color: var(--primary);
-  border-color: rgba(255,255,255,0.1);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .splash-loading {
   height: 100vh;
@@ -316,7 +316,7 @@ html, body, #root {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(10,14,26,0.8);
+  background: rgba(10, 14, 26, 0.8);
 }
 
 .header-brand {
@@ -352,7 +352,7 @@ html, body, #root {
   margin: 0 auto 16px;
   font-weight: 700;
   color: #0a0e1a;
-  box-shadow: 0 0 24px rgba(0,201,167,0.3);
+  box-shadow: 0 0 24px rgba(0, 201, 167, 0.3);
 }
 
 .welcome-title {
@@ -360,7 +360,7 @@ html, body, #root {
   font-weight: 700;
 }
 
-.welcome-phone {
+.welcome-email {
   color: var(--text-muted);
   font-size: 15px;
   margin-top: 4px;
@@ -369,8 +369,8 @@ html, body, #root {
 .alert-banner {
   margin-top: 16px;
   padding: 12px 20px;
-  background: rgba(255,194,0,0.1);
-  border: 1px solid rgba(255,194,0,0.2);
+  background: rgba(255, 194, 0, 0.1);
+  border: 1px solid rgba(255, 194, 0, 0.2);
   border-radius: 10px;
   font-size: 14px;
   color: #ffc200;
@@ -395,7 +395,7 @@ html, body, #root {
 
 .feature-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(0,201,167,0.3);
+  border-color: rgba(0, 201, 167, 0.3);
 }
 
 .feature-icon {
@@ -418,8 +418,8 @@ html, body, #root {
   display: inline-block;
   margin-top: 12px;
   padding: 3px 10px;
-  background: rgba(79,142,247,0.15);
-  border: 1px solid rgba(79,142,247,0.3);
+  background: rgba(79, 142, 247, 0.15);
+  border: 1px solid rgba(79, 142, 247, 0.3);
   border-radius: 20px;
   font-size: 11px;
   color: var(--accent);
@@ -428,7 +428,11 @@ html, body, #root {
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
-  .auth-card { padding: 32px 24px; }
-  .otp-box { width: 42px; height: 50px; font-size: 20px; }
-  .feature-grid { grid-template-columns: 1fr 1fr; }
+  .auth-card {
+    padding: 32px 24px;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }

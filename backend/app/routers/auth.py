@@ -7,8 +7,8 @@ from app.core.supabase_client import get_supabase_client, get_supabase_admin_cli
 from app.middleware.auth import get_current_user_id
 from app.models.user import User
 from app.schemas.auth import (
-    SendOTPRequest,
-    VerifyOTPRequest,
+    SignupRequest,
+    LoginRequest,
     RefreshTokenRequest,
     AuthResponse,
     MessageResponse,
@@ -18,61 +18,37 @@ from app.schemas.auth import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/send-otp", response_model=MessageResponse, status_code=status.HTTP_200_OK)
-async def send_otp(body: SendOTPRequest):
+@router.post("/signup", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+async def signup(body: SignupRequest, db: Session = Depends(get_db)):
     """
-    Send an OTP to the given phone number via Supabase (SMS).
-    Works for both signup (new user) and login (existing user).
+    Register a new user with email and password via Supabase,
+    then create a profile in our PostgreSQL DB.
     """
     supabase = get_supabase_client()
     try:
-        print(body.phone)
-        res = supabase.auth.sign_in_with_otp({"phone": body.phone})
-        # supabase-py raises on error automatically
-        return MessageResponse(
-            message="OTP sent successfully",
-            detail=f"A 6-digit code was sent to {body.phone}",
-        )
+        res = supabase.auth.sign_up({"email": body.email, "password": body.password})
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to send OTP: {str(e)}",
-        )
-
-
-@router.post("/verify-otp", response_model=AuthResponse, status_code=status.HTTP_200_OK)
-async def verify_otp(body: VerifyOTPRequest, db: Session = Depends(get_db)):
-    """
-    Verify the OTP and return Supabase session tokens.
-    On first login (signup), creates a user profile in our PostgreSQL DB.
-    """
-    supabase = get_supabase_client()
-    try:
-        res = supabase.auth.verify_otp(
-            {"phone": body.phone, "token": body.token, "type": "sms"}
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid or expired OTP: {str(e)}",
+            detail=f"Signup failed: {str(e)}",
         )
 
     if not res.session or not res.user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="OTP verification failed — no session returned",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Signup failed — no session returned. The email may already be registered.",
         )
 
     supabase_uid = res.user.id
     access_token = res.session.access_token
-    refresh_token = res.session.refresh_token
+    refresh_token_value = res.session.refresh_token
 
-    # Upsert user profile in our PostgreSQL DB
+    # Create user profile in PostgreSQL
     db_user = db.query(User).filter(User.supabase_uid == supabase_uid).first()
     if db_user is None:
         db_user = User(
             supabase_uid=supabase_uid,
-            phone_number=body.phone,
+            email=body.email,
             consent_given=body.consent_given,
             last_login=datetime.utcnow(),
         )
@@ -87,7 +63,55 @@ async def verify_otp(body: VerifyOTPRequest, db: Session = Depends(get_db)):
 
     return AuthResponse(
         access_token=access_token,
-        refresh_token=refresh_token,
+        refresh_token=refresh_token_value,
+        user=UserOut(**db_user.to_dict()),
+    )
+
+
+@router.post("/login", response_model=AuthResponse, status_code=status.HTTP_200_OK)
+async def login(body: LoginRequest, db: Session = Depends(get_db)):
+    """
+    Authenticate an existing user with email and password via Supabase.
+    """
+    supabase = get_supabase_client()
+    try:
+        res = supabase.auth.sign_in_with_password(
+            {"email": body.email, "password": body.password}
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Login failed: {str(e)}",
+        )
+
+    if not res.session or not res.user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+        )
+
+    supabase_uid = res.user.id
+    access_token = res.session.access_token
+    refresh_token_value = res.session.refresh_token
+
+    # Upsert user profile
+    db_user = db.query(User).filter(User.supabase_uid == supabase_uid).first()
+    if db_user is None:
+        db_user = User(
+            supabase_uid=supabase_uid,
+            email=body.email,
+            last_login=datetime.utcnow(),
+        )
+        db.add(db_user)
+    else:
+        db_user.last_login = datetime.utcnow()
+
+    db.commit()
+    db.refresh(db_user)
+
+    return AuthResponse(
+        access_token=access_token,
+        refresh_token=refresh_token_value,
         user=UserOut(**db_user.to_dict()),
     )
 

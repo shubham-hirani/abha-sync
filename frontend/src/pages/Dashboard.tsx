@@ -23,10 +23,10 @@ export default function Dashboard() {
             <main className="dashboard-main">
                 <div className="welcome-card">
                     <div className="welcome-avatar">
-                        {user?.phone_number?.slice(-2) ?? "👤"}
+                        {user?.email?.charAt(0)?.toUpperCase() ?? "👤"}
                     </div>
                     <h2 className="welcome-title">Welcome!</h2>
-                    <p className="welcome-phone">{user?.phone_number}</p>
+                    <p className="welcome-email">{user?.email}</p>
                     {!user?.consent_given && (
                         <div className="alert-banner">
                             ⚠️ Please accept the privacy policy to enable all features.
