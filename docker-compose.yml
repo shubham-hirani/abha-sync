@@ -58,5 +58,18 @@ services:
     depends_on:
       - backend
 
+  # ─────────────────────────────────────
+  # ABHA-Sync Dashboard (front-end-1)
+  # ─────────────────────────────────────
+  dashboard:
+    build:
+      context: ./front-end-1
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
