@@ -5,9 +5,34 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import StatCard from '../components/StatCard'
 import DataTable from '../components/DataTable'
 import { mockData } from '../mock/mockData'
+import api from '../services/api'
 
 function Dashboard() {
   const navigate = useNavigate()
+  const [records, setRecords] = React.useState(mockData.records)
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState(null)
+
+  React.useEffect(() => {
+    let cancelled = false
+    api.getRecords()
+      .then((result) => {
+        if (!cancelled && result.success && result.data.records.length > 0) {
+          const mapped = result.data.records.map((r, i) => ({
+            id: i + 1,
+            date: r.createdAt || r.created_at || new Date().toISOString(),
+            condition: r.extractedData?.diagnosis?.[0] || r.extractedData?.diagnosis || 'General',
+            doctor: r.extractedData?.doctor?.name || 'Unknown',
+            status: r.status === 'processed' ? 'Ongoing' : r.status === 'uploaded_to_abha' ? 'Controlled' : 'Pending',
+            hospital: 'ABHA-Sync Upload',
+          }))
+          setRecords(mapped)
+        }
+      })
+      .catch((err) => { if (!cancelled) setError(err.message) })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
 
   const statsData = [
     {
@@ -272,13 +297,20 @@ function Dashboard() {
       </div>
 
       {/* Recent Records Table */}
-      <DataTable
-        title="Recent Medical Records"
-        data={mockData.records}
-        columns={tableColumns}
-        searchable={true}
-        itemsPerPage={5}
-      />
+      {loading ? (
+        <div className="card text-center py-8">
+          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-gray-500">Loading records...</p>
+        </div>
+      ) : (
+        <DataTable
+          title="Recent Medical Records"
+          data={records}
+          columns={tableColumns}
+          searchable={true}
+          itemsPerPage={5}
+        />
+      )}
     </div>
   )
 }

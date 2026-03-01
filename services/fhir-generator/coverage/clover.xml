@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1772300854292" clover="3.2.0">
+  <project timestamp="1772300854292" name="All files">
+    <metrics statements="93" coveredstatements="85" conditionals="95" coveredconditionals="68" methods="12" coveredmethods="11" elements="200" coveredelements="164" complexity="0" loc="93" ncloc="93" packages="3" files="3" classes="3"/>
+    <package name="src">
+      <metrics statements="17" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="1"/>
+      <file name="index.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/fhir-generator/src/index.js">
+        <metrics statements="17" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.routes">
+      <metrics statements="11" coveredstatements="10" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
+      <file name="fhir.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/fhir-generator/src/routes/fhir.js">
+        <metrics statements="11" coveredstatements="10" conditionals="2" coveredconditionals="1" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="11" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="27" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services">
+      <metrics statements="65" coveredstatements="60" conditionals="89" coveredconditionals="64" methods="9" coveredmethods="9"/>
+      <file name="generator.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/fhir-generator/src/services/generator.js">
+        <metrics statements="65" coveredstatements="60" conditionals="89" coveredconditionals="64" methods="9" coveredmethods="9"/>
+        <line num="8" count="2" type="stmt"/>
+        <line num="14" count="14" type="stmt"/>
+        <line num="39" count="11" type="stmt"/>
+        <line num="61" count="10" type="stmt"/>
+        <line num="62" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="9" type="stmt"/>
+        <line num="69" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="70" count="9" type="stmt"/>
+        <line num="77" count="10" type="stmt"/>
+        <line num="102" count="11" type="stmt"/>
+        <line num="127" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="128" count="10" type="stmt"/>
+        <line num="133" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="134" count="1" type="stmt"/>
+        <line num="137" count="11" type="stmt"/>
+        <line num="144" count="9" type="stmt"/>
+        <line num="184" count="13" type="stmt"/>
+        <line num="185" count="13" type="stmt"/>
+        <line num="188" count="13" type="cond" truecount="1" falsecount="1"/>
+        <line num="189" count="13" type="stmt"/>
+        <line num="190" count="13" type="stmt"/>
+        <line num="197" count="13" type="stmt"/>
+        <line num="198" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="199" count="10" type="stmt"/>
+        <line num="200" count="10" type="stmt"/>
+        <line num="201" count="10" type="stmt"/>
+        <line num="209" count="13" type="cond" truecount="2" falsecount="0"/>
+        <line num="210" count="9" type="cond" truecount="2" falsecount="0"/>
+        <line num="211" count="9" type="stmt"/>
+        <line num="212" count="10" type="stmt"/>
+        <line num="213" count="10" type="stmt"/>
+        <line num="222" count="13" type="cond" truecount="4" falsecount="0"/>
+        <line num="223" count="9" type="stmt"/>
+        <line num="224" count="9" type="stmt"/>
+        <line num="225" count="9" type="stmt"/>
+        <line num="234" count="13" type="cond" truecount="4" falsecount="0"/>
+        <line num="235" count="9" type="stmt"/>
+        <line num="236" count="9" type="stmt"/>
+        <line num="237" count="9" type="stmt"/>
+        <line num="245" count="13" type="stmt"/>
+        <line num="260" count="8" type="stmt"/>
+        <line num="262" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="263" count="1" type="stmt"/>
+        <line num="266" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="267" count="1" type="stmt"/>
+        <line num="270" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="271" count="0" type="stmt"/>
+        <line num="274" count="7" type="cond" truecount="1" falsecount="1"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="278" count="7" type="cond" truecount="5" falsecount="0"/>
+        <line num="279" count="2" type="stmt"/>
+        <line num="282" count="5" type="stmt"/>
+        <line num="283" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="284" count="1" type="stmt"/>
+        <line num="287" count="5" type="stmt"/>
+        <line num="288" count="10" type="stmt"/>
+        <line num="289" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="290" count="0" type="stmt"/>
+        <line num="292" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="293" count="0" type="stmt"/>
+        <line num="295" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="296" count="0" type="stmt"/>
+        <line num="301" count="7" type="stmt"/>
+        <line num="305" count="10" type="cond" truecount="1" falsecount="1"/>
+        <line num="309" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>

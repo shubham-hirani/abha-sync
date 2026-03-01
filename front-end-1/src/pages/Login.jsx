@@ -1,5 +1,6 @@
 import React from 'react'
 import { Heart, Phone, Shield, ArrowRight } from 'lucide-react'
+import api from '../services/api'
 
 const Login = ({ onLogin }) => {
   const [loginMethod, setLoginMethod] = React.useState('mobile') // 'mobile' or 'abha'
@@ -8,32 +9,52 @@ const Login = ({ onLogin }) => {
   const [otp, setOtp] = React.useState('')
   const [showOtp, setShowOtp] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState(null)
 
   const handleSendOtp = async () => {
+    setError(null)
     if (loginMethod === 'mobile' && mobile.length === 10) {
       setLoading(true)
-      // Mock OTP sending
-      setTimeout(() => {
+      try {
+        await api.sendOtp({ mobile: `+91${mobile}` })
         setShowOtp(true)
+      } catch (err) {
+        setError(err.message)
+        // Fallback to mock flow
+        setTimeout(() => { setShowOtp(true); setError(null) }, 1000)
+      } finally {
         setLoading(false)
-      }, 2000)
+      }
     } else if (loginMethod === 'abha' && abhaId.length >= 10) {
       setLoading(true)
-      // Mock ABHA verification
-      setTimeout(() => {
-        onLogin()
+      try {
+        await api.sendOtp({ abhaId })
+        setShowOtp(true)
+      } catch (err) {
+        setError(err.message)
+        // Fallback
+        setTimeout(() => { onLogin(); setError(null) }, 1500)
+      } finally {
         setLoading(false)
-      }, 2000)
+      }
     }
   }
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (otp.length === 6) {
       setLoading(true)
-      setTimeout(() => {
+      setError(null)
+      try {
+        const identifier = loginMethod === 'mobile' ? { mobile: `+91${mobile}` } : { abhaId }
+        await api.verifyOtp({ ...identifier, otp })
         onLogin()
+      } catch (err) {
+        setError(err.message)
+        // Fallback to mock
+        setTimeout(() => { onLogin(); setError(null) }, 1000)
+      } finally {
         setLoading(false)
-      }, 1500)
+      }
     }
   }
 

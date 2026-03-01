@@ -16,14 +16,46 @@ import { mockData } from '../mock/mockData'
 const ReviewExtraction = () => {
   const navigate = useNavigate()
   const [editingField, setEditingField] = React.useState(null)
-  const [extractedData, setExtractedData] = React.useState({
-    patient: mockData.user.name,
-    doctor: "Dr. Mehta",
-    hospital: "Apollo Hospital",
-    date: "2024-02-20",
-    diagnosis: "Type 2 Diabetes",
-    medications: mockData.medications.slice(0, 2),
-    labValues: mockData.labResults.slice(0, 2)
+
+  // Try to load real extraction result from API, fallback to mock
+  const storedExtraction = React.useMemo(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('lastExtraction') || '{}')
+      if (stored.extraction) return stored
+      return null
+    } catch { return null }
+  }, [])
+
+  const [extractedData, setExtractedData] = React.useState(() => {
+    if (storedExtraction?.extraction) {
+      const ext = storedExtraction.extraction
+      return {
+        patient: ext.patient?.name || mockData.user.name,
+        doctor: ext.doctor?.name || "Dr. Mehta",
+        hospital: "Apollo Hospital",
+        date: ext.extractedAt?.split('T')[0] || "2024-02-20",
+        diagnosis: Array.isArray(ext.diagnosis) ? ext.diagnosis[0] : ext.diagnosis || "Type 2 Diabetes",
+        confidenceScore: ext.confidenceScore || 0,
+        medications: (ext.medicines || []).length > 0 
+          ? ext.medicines.map((m, i) => ({ id: i + 1, name: m.name, dosage: m.dosage, frequency: m.frequency }))
+          : mockData.medications.slice(0, 2),
+        labValues: (ext.labValues || []).length > 0
+          ? ext.labValues.map((l, i) => ({ id: i + 1, parameter: l.parameter, value: l.value, unit: l.unit }))
+          : mockData.labResults.slice(0, 2),
+        normalization: storedExtraction.normalization || null,
+      }
+    }
+    return {
+      patient: mockData.user.name,
+      doctor: "Dr. Mehta",
+      hospital: "Apollo Hospital",
+      date: "2024-02-20",
+      diagnosis: "Type 2 Diabetes",
+      confidenceScore: 0,
+      medications: mockData.medications.slice(0, 2),
+      labValues: mockData.labResults.slice(0, 2),
+      normalization: null,
+    }
   })
 
   const handleEdit = (field, value) => {

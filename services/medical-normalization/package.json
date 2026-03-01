@@ -1,0 +1,21 @@
+{
+  "name": "@abha-sync/medical-normalization",
+  "version": "1.0.0",
+  "description": "Medical Normalization Service for ABHA-Sync",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "jest --coverage --forceExit",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "@abha-sync/shared": "file:../shared"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}

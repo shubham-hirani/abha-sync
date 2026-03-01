@@ -1,6 +1,7 @@
 import React from 'react'
 import { Bell, Search, User, ChevronDown } from 'lucide-react'
 import { mockData } from '../mock/mockData'
+// User data can come from props or fallback to mockData
 
 const Navbar = ({ onLogout }) => {
   const [showProfileMenu, setShowProfileMenu] = React.useState(false)

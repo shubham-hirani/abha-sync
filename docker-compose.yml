@@ -1,6 +1,6 @@
 services:
   # ─────────────────────────────────────
-  # PostgreSQL — app data (NOT Supabase auth)
+  # PostgreSQL — existing backend data
   # ─────────────────────────────────────
   postgres:
     image: supabase/postgres:15.6.1.113
@@ -20,7 +20,7 @@ services:
       retries: 5
 
   # ─────────────────────────────────────
-  # FastAPI Backend
+  # Existing FastAPI Backend (UNCHANGED)
   # ─────────────────────────────────────
   backend:
     build:
@@ -37,14 +37,14 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./backend:/app # hot-reload in dev
+      - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1
       - net.ipv6.conf.default.disable_ipv6=1
 
   # ─────────────────────────────────────
-  # React Frontend (dev mode with Vite)
+  # Existing React Frontend (UNCHANGED)
   # ─────────────────────────────────────
   frontend:
     build:
@@ -58,6 +58,123 @@ services:
     depends_on:
       - backend
 
+  # ═════════════════════════════════════
+  #  NEW MICROSERVICES (ABHA-Sync MVP)
+  # ═════════════════════════════════════
+
+  # ─────────────────────────────────────
+  # AI Extraction Service
+  # ─────────────────────────────────────
+  ai-extraction:
+    build:
+      context: ./services
+      dockerfile: ai-extraction/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - SERVICE_NAME=ai-extraction
+      - NODE_ENV=${NODE_ENV:-development}
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─────────────────────────────────────
+  # Medical Normalization Service
+  # ─────────────────────────────────────
+  medical-normalization:
+    build:
+      context: ./services
+      dockerfile: medical-normalization/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=3002
+      - SERVICE_NAME=medical-normalization
+      - NODE_ENV=${NODE_ENV:-development}
+    ports:
+      - "3002:3002"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─────────────────────────────────────
+  # FHIR Generator Service
+  # ─────────────────────────────────────
+  fhir-generator:
+    build:
+      context: ./services
+      dockerfile: fhir-generator/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=3003
+      - SERVICE_NAME=fhir-generator
+      - NODE_ENV=${NODE_ENV:-development}
+    ports:
+      - "3003:3003"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3003/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─────────────────────────────────────
+  # ABHA Mock Service
+  # ─────────────────────────────────────
+  abha-mock-service:
+    build:
+      context: ./services
+      dockerfile: abha-mock-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=3004
+      - SERVICE_NAME=abha-mock-service
+      - NODE_ENV=${NODE_ENV:-development}
+    ports:
+      - "3004:3004"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3004/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ─────────────────────────────────────
+  # API Gateway (Orchestrator)
+  # ─────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./services
+      dockerfile: api-gateway/Dockerfile
+    restart: unless-stopped
+    environment:
+      - PORT=3010
+      - SERVICE_NAME=api-gateway
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_PATH=/data/abha-sync.db
+      - AI_EXTRACTION_URL=http://ai-extraction:3001
+      - NORMALIZATION_URL=http://medical-normalization:3002
+      - FHIR_GENERATOR_URL=http://fhir-generator:3003
+      - ABHA_MOCK_URL=http://abha-mock-service:3004
+      - JWT_SECRET=${JWT_SECRET:-abha-sync-mvp-secret-key-2024}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    ports:
+      - "3010:3010"
+    volumes:
+      - sqlite_data:/data
+    depends_on:
+      ai-extraction:
+        condition: service_healthy
+      medical-normalization:
+        condition: service_healthy
+      fhir-generator:
+        condition: service_healthy
+      abha-mock-service:
+        condition: service_healthy
+
   # ─────────────────────────────────────
   # ABHA-Sync Dashboard (front-end-1)
   # ─────────────────────────────────────
@@ -67,9 +184,10 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "3001:80"
+      - "3011:80"
     depends_on:
-      - backend
+      - api-gateway
 
 volumes:
   postgres_data:
+  sqlite_data:

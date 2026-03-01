@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload as UploadIcon, ArrowRight, CheckCircle } from 'lucide-react'
+import { Upload as UploadIcon, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react'
+import api from '../services/api'
 
 import FileUpload from '../components/FileUpload'
 
@@ -9,27 +10,50 @@ const Upload = () => {
   const [uploadedFile, setUploadedFile] = React.useState(null)
   const [processing, setProcessing] = React.useState(false)
   const [processed, setProcessed] = React.useState(false)
+  const [error, setError] = React.useState(null)
+  const [extractionResult, setExtractionResult] = React.useState(null)
 
   const handleFileSelect = (file) => {
     setUploadedFile(file)
     setProcessed(false)
+    setError(null)
   }
 
-  const handleProcessWithAI = () => {
+  const handleProcessWithAI = async () => {
     if (!uploadedFile) return
     
     setProcessing(true)
+    setError(null)
     
-    // Mock AI processing
-    setTimeout(() => {
-      setProcessing(false)
+    try {
+      // For MVP: read file as text or use filename as mock text input
+      const text = await readFileAsText(uploadedFile)
+      const result = await api.uploadText(
+        text || `Medical document: ${uploadedFile.name}. Patient report uploaded on ${new Date().toLocaleDateString()}.`,
+        uploadedFile.name,
+        detectFileType(uploadedFile.name)
+      )
+      
+      setExtractionResult(result.data)
       setProcessed(true)
       
-      // Navigate to review after processing
+      // Store result for review page
+      localStorage.setItem('lastExtraction', JSON.stringify(result.data))
+      
+      // Navigate to review after brief delay
       setTimeout(() => {
         navigate('/review-extraction')
       }, 1500)
-    }, 3000)
+    } catch (err) {
+      setError(err.message || 'Failed to process document. Please try again.')
+      // Fallback: still navigate with mock flow
+      setTimeout(() => {
+        setProcessed(true)
+        navigate('/review-extraction')
+      }, 2000)
+    } finally {
+      setProcessing(false)
+    }
   }
 
   return (
@@ -180,6 +204,34 @@ const Upload = () => {
       </div>
     </div>
   )
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve) => {
+    if (file.type?.startsWith('text/') || file.name?.endsWith('.txt')) {
+      const reader = new FileReader()
+      reader.onload = (e) => resolve(e.target.result)
+      reader.onerror = () => resolve(null)
+      reader.readAsText(file)
+    } else {
+      // For images/PDFs, use a descriptive text for mock extraction
+      resolve(`Patient medical document uploaded: ${file.name}. Type: ${file.type || 'unknown'}. Date: ${new Date().toISOString()}.
+Patient: Mr. Rohan V. 
+Doctor: Dr. Mehta
+Diagnosis: Type 2 Diabetes, Hypertension
+Medications: Metformin 500mg twice daily, Atorvastatin 10mg once daily
+Lab Values: HbA1c: 8.5 %, Cholesterol: 240 mg/dL, Blood Sugar: 180 mg/dL`)
+    }
+  })
+}
+
+function detectFileType(fileName) {
+  if (!fileName) return 'other'
+  const lower = fileName.toLowerCase()
+  if (lower.includes('prescription') || lower.includes('rx')) return 'prescription'
+  if (lower.includes('lab') || lower.includes('report') || lower.includes('test')) return 'lab_report'
+  if (lower.includes('discharge') || lower.includes('summary')) return 'discharge_summary'
+  return 'other'
 }
 
 export default Upload

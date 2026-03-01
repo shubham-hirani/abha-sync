@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1772300839300" clover="3.2.0">
+  <project timestamp="1772300839300" name="All files">
+    <metrics statements="94" coveredstatements="92" conditionals="48" coveredconditionals="44" methods="15" coveredmethods="14" elements="157" coveredelements="150" complexity="0" loc="94" ncloc="94" packages="3" files="3" classes="3"/>
+    <package name="src">
+      <metrics statements="17" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="1"/>
+      <file name="index.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/ai-extraction/src/index.js">
+        <metrics statements="17" coveredstatements="15" conditionals="4" coveredconditionals="3" methods="2" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
+        <line num="7" count="1" type="cond" truecount="2" falsecount="0"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="11" count="1" type="stmt"/>
+        <line num="14" count="1" type="stmt"/>
+        <line num="15" count="1" type="stmt"/>
+        <line num="19" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="24" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.routes">
+      <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+      <file name="extraction.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/ai-extraction/src/routes/extraction.js">
+        <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="9" count="1" type="stmt"/>
+        <line num="10" count="1" type="stmt"/>
+        <line num="13" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.services">
+      <metrics statements="68" coveredstatements="68" conditionals="44" coveredconditionals="41" methods="12" coveredmethods="12"/>
+      <file name="extractor.js" path="/Users/rohanvachheta/Downloads/abha-sync/services/ai-extraction/src/services/extractor.js">
+        <metrics statements="68" coveredstatements="68" conditionals="44" coveredconditionals="41" methods="12" coveredmethods="12"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="10" count="2" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="stmt"/>
+        <line num="17" count="2" type="stmt"/>
+        <line num="20" count="2" type="stmt"/>
+        <line num="34" count="11" type="stmt"/>
+        <line num="35" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="36" count="3" type="stmt"/>
+        <line num="38" count="8" type="stmt"/>
+        <line num="42" count="11" type="stmt"/>
+        <line num="43" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="44" count="3" type="stmt"/>
+        <line num="46" count="8" type="stmt"/>
+        <line num="50" count="11" type="stmt"/>
+        <line num="51" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="52" count="4" type="stmt"/>
+        <line num="55" count="7" type="stmt"/>
+        <line num="56" count="49" type="stmt"/>
+        <line num="57" count="7" type="cond" truecount="2" falsecount="0"/>
+        <line num="61" count="11" type="stmt"/>
+        <line num="62" count="11" type="stmt"/>
+        <line num="65" count="11" type="stmt"/>
+        <line num="66" count="110" type="cond" truecount="2" falsecount="0"/>
+        <line num="67" count="7" type="stmt"/>
+        <line num="72" count="11" type="stmt"/>
+        <line num="73" count="11" type="stmt"/>
+        <line num="74" count="5" type="stmt"/>
+        <line num="75" count="5" type="stmt"/>
+        <line num="76" count="5" type="stmt"/>
+        <line num="78" count="5" type="stmt"/>
+        <line num="79" count="6" type="cond" truecount="4" falsecount="0"/>
+        <line num="80" count="3" type="stmt"/>
+        <line num="89" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="93" count="11" type="stmt"/>
+        <line num="94" count="11" type="stmt"/>
+        <line num="96" count="11" type="stmt"/>
+        <line num="97" count="3" type="stmt"/>
+        <line num="105" count="11" type="stmt"/>
+        <line num="114" count="11" type="stmt"/>
+        <line num="115" count="11" type="stmt"/>
+        <line num="116" count="66" type="cond" truecount="4" falsecount="0"/>
+        <line num="117" count="2" type="stmt"/>
+        <line num="118" count="2" type="cond" truecount="1" falsecount="1"/>
+        <line num="119" count="2" type="stmt"/>
+        <line num="127" count="11" type="stmt"/>
+        <line num="131" count="11" type="stmt"/>
+        <line num="133" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="134" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="135" count="11" type="cond" truecount="4" falsecount="0"/>
+        <line num="136" count="11" type="cond" truecount="4" falsecount="0"/>
+        <line num="137" count="11" type="cond" truecount="2" falsecount="0"/>
+        <line num="139" count="11" type="stmt"/>
+        <line num="143" count="13" type="cond" truecount="4" falsecount="0"/>
+        <line num="144" count="2" type="stmt"/>
+        <line num="155" count="11" type="stmt"/>
+        <line num="156" count="11" type="stmt"/>
+        <line num="157" count="11" type="stmt"/>
+        <line num="158" count="11" type="stmt"/>
+        <line num="159" count="11" type="stmt"/>
+        <line num="161" count="11" type="stmt"/>
+        <line num="162" count="11" type="stmt"/>
+        <line num="164" count="11" type="stmt"/>
+        <line num="171" count="2" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
