@@ -8,8 +8,12 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.s3_client import upload_file_to_s3, download_file_from_s3, delete_file_from_s3
-from app.core.bedrock_client import analyze_medical_image
-from app.core.custom_ai_client import analyze_medical_image as analyze_medical_image_nvidia
+from app.core.bedrock_client import analyze_medical_image, analyze_medical_text
+from app.core.custom_ai_client import (
+    analyze_medical_image as analyze_medical_image_nvidia,
+    analyze_medical_text as analyze_medical_text_nvidia,
+)
+from app.core.textract_client import extract_text_from_pdf
 from app.core.config import get_settings
 from app.middleware.auth import get_current_user_id
 from app.models.user import User
@@ -139,11 +143,11 @@ async def analyze_record(
 ):
     """
     Analyze a medical record using the configured AI service (AI_SERVICE env var).
-    Returns cached result if already analyzed (avoids repeat API calls).
+    PDFs are first processed by AWS Textract (async) to extract text, then sent
+    to the LLM as plain text. Images are sent directly as base64.
+    Returns cached result if already analyzed.
     """
-    print("hii")
     settings = get_settings()
-    print("Hii")
 
     db_user = db.query(User).filter(User.supabase_uid == uid).first()
     if not db_user:
@@ -154,7 +158,6 @@ async def analyze_record(
         .filter(MedicalRecord.id == record_id, MedicalRecord.user_id == db_user.user_id)
         .first()
     )
-    print("Hii")
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
 
@@ -162,28 +165,49 @@ async def analyze_record(
     if record.ai_analysis:
         return _record_to_out(record)
 
-    # Download file from S3
-    try:
-        file_bytes = download_file_from_s3(record.s3_key)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Could not retrieve file from storage")
+    ai_service = settings.ai_service.lower().strip()
+    is_pdf = record.content_type == "application/pdf"
 
-    # Route to the configured AI service
     try:
-        ai_service = settings.ai_service.lower().strip()
+        if is_pdf:
+            # ── PDF path: Textract extracts text, then text-only LLM call ──
+            try:
+                extracted_text = extract_text_from_pdf(record.s3_key)
+            except RuntimeError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+                    detail=f"PDF text extraction failed: {str(e)}",
+                )
 
-        if ai_service == "bedrock":
-            analysis_result = analyze_medical_image(
-                image_bytes=file_bytes,
-                content_type=record.content_type,
-                record_type=record.record_type,
-            )
+            if ai_service == "bedrock":
+                analysis_result = analyze_medical_text(
+                    extracted_text=extracted_text,
+                    record_type=record.record_type,
+                )
+            else:
+                analysis_result = analyze_medical_text_nvidia(
+                    extracted_text=extracted_text,
+                    record_type=record.record_type,
+                )
         else:
-            analysis_result = analyze_medical_image_nvidia(
-                image_bytes=file_bytes,
-                content_type=record.content_type,
-                record_type=record.record_type,
-            )
+            # ── Image path: download bytes, send as base64 to LLM ──
+            try:
+                file_bytes = download_file_from_s3(record.s3_key)
+            except Exception:
+                raise HTTPException(status_code=500, detail="Could not retrieve file from storage")
+
+            if ai_service == "bedrock":
+                analysis_result = analyze_medical_image(
+                    image_bytes=file_bytes,
+                    content_type=record.content_type,
+                    record_type=record.record_type,
+                )
+            else:
+                analysis_result = analyze_medical_image_nvidia(
+                    image_bytes=file_bytes,
+                    content_type=record.content_type,
+                    record_type=record.record_type,
+                )
     except HTTPException:
         raise
     except Exception as e:

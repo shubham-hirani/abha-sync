@@ -1116,3 +1116,416 @@ body,
   color: #ef4444;
   font-size: 0.88rem;
 }
+
+/* ── Verdict banner ── */
+.ai-verdict {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0 0 16px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Section wrapper ── */
+.ai-section {
+  margin-top: 20px;
+}
+
+.ai-section h5 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* ── Drug cards ── */
+.ai-drug-card {
+  background: rgba(79, 142, 247, 0.06);
+  border: 1px solid rgba(79, 142, 247, 0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.ai-drug-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ai-drug-header strong {
+  font-size: 0.98rem;
+  color: var(--text-primary);
+}
+
+.ai-drug-dose {
+  font-size: 0.82rem;
+  color: var(--primary);
+  font-weight: 600;
+  background: rgba(0, 201, 167, 0.1);
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.ai-drug-desc {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.ai-drug-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.ai-drug-grid span {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ai-drug-detail {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.ai-drug-detail summary {
+  color: #f7b538;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.ai-drug-detail ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.ai-warnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ai-warning-badge {
+  font-size: 0.8rem;
+  padding: 3px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* ── Parameter cards ── */
+.ai-param-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.ai-param-normal {
+  border-left-color: #00c9a7;
+}
+
+.ai-param-high {
+  border-left-color: #f7b538;
+}
+
+.ai-param-low {
+  border-left-color: #f7b538;
+}
+
+.ai-param-critical {
+  border-left-color: #ef4444;
+}
+
+.ai-param-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ai-param-name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.ai-param-values {
+  display: flex;
+  gap: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.ai-param-meaning {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+
+.ai-param-action {
+  font-size: 0.87rem;
+  color: #00c9a7;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ── Abnormal findings ── */
+.ai-finding {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border-left: 3px solid #f7b538;
+  background: rgba(247, 181, 56, 0.06);
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.ai-finding strong {
+  display: block;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.ai-finding p {
+  margin: 0;
+}
+
+.ai-finding-moderate {
+  border-left-color: #f7b538;
+  background: rgba(247, 181, 56, 0.06);
+}
+
+.ai-finding-severe {
+  border-left-color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.ai-finding-mild {
+  border-left-color: #64748b;
+  background: rgba(100, 116, 139, 0.06);
+}
+
+/* ── Supplement cards ── */
+.ai-supplement {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: rgba(79, 142, 247, 0.06);
+  border: 1px solid rgba(79, 142, 247, 0.15);
+  margin-bottom: 8px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.ai-supplement strong {
+  color: var(--text-primary);
+}
+
+.ai-supplement-caution {
+  font-size: 0.8rem;
+  color: #f7b538;
+  margin: 6px 0 0;
+}
+
+/* ── Diet list ── */
+.ai-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ── Doctor advice box ── */
+.ai-doctor-advice {
+  margin-top: 20px;
+  padding: 16px;
+  border-left: 4px solid #22c55e;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.88rem;
+}
+
+.ai-doctor-urgency {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.ai-doctor-advice p {
+  margin: 0 0 10px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.ai-red-flags {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.08);
+  border-radius: 8px;
+}
+
+.ai-red-flags strong {
+  color: #ef4444;
+  font-size: 0.88rem;
+}
+
+.ai-red-flags ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* ── Reassurance note ── */
+.ai-reassurance {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(0, 201, 167, 0.07);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  color: #00c9a7;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ── Test name banner ── */
+.ai-test-name {
+  display: inline-block;
+  margin-bottom: 12px;
+  padding: 4px 14px;
+  background: rgba(79, 142, 247, 0.12);
+  color: #4f8ef7;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* ── Prescription meta row (doctor / date) ── */
+.ai-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.ai-meta-item {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+
+.ai-meta-item strong {
+  color: var(--text-primary);
+}
+
+/* ── What this means for you ── */
+.ai-means-for-you {
+  padding: 12px 16px;
+  background: rgba(0, 201, 167, 0.06);
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.ai-means-for-you strong {
+  display: block;
+  color: var(--primary);
+  margin-bottom: 6px;
+  font-size: 0.92rem;
+}
+
+.ai-means-for-you p {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Always-visible side effects block ── */
+.ai-drug-side-effects {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(247, 181, 56, 0.06);
+  border-radius: 8px;
+}
+
+.ai-side-effects-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f7b538;
+  margin-bottom: 6px;
+}
+
+.ai-drug-side-effects ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ── Full-width row inside the drug grid ── */
+.ai-drug-grid-full {
+  grid-column: 1 / -1;
+}
+
+/* ── Severity badge on findings ── */
+.ai-severity-badge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.ai-severity-mild {
+  background: rgba(100, 116, 139, 0.15);
+  color: #94a3b8;
+}
+
+.ai-severity-moderate {
+  background: rgba(247, 181, 56, 0.15);
+  color: #f7b538;
+}
+
+.ai-severity-severe {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+/* ── Supplement reason text ── */
+.ai-supplement-reason {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 6px 0 4px;
+  line-height: 1.5;
+}
+
+/* ── Numbered recommendations ── */
+.ai-rec-list {
+  margin: 0;
+  padding-left: 22px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.ai-rec-list li {
+  margin-bottom: 6px;
+}
