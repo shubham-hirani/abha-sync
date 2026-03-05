@@ -21,6 +21,23 @@ from app.models.record import MedicalRecord  # noqa: F401 — ensure table is cr
 # Create all tables on startup
 Base.metadata.create_all(bind=engine)
 
+# Auto-migrate: add new columns if they don't exist (create_all doesn't do this)
+with engine.connect() as conn:
+    try:
+        conn.execute(
+            __import__('sqlalchemy').text(
+                "ALTER TABLE medical_records ADD COLUMN IF NOT EXISTS ai_analysis TEXT"
+            )
+        )
+        conn.execute(
+            __import__('sqlalchemy').text(
+                "ALTER TABLE medical_records ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMP WITH TIME ZONE"
+            )
+        )
+        conn.commit()
+    except Exception:
+        pass  # Column already exists or table doesn't exist yet
+
 settings = get_settings()
 
 app = FastAPI(

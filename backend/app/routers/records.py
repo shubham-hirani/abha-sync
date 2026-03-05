@@ -1,10 +1,15 @@
+from typing import Any
 import uuid
+import json
+from datetime import datetime
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.s3_client import upload_file_to_s3, download_file_from_s3, delete_file_from_s3
+from app.core.bedrock_client import analyze_medical_image
+from app.core.custom_ai_client import analyze_medical_image as analyze_medical_image_nvidia
 from app.core.config import get_settings
 from app.middleware.auth import get_current_user_id
 from app.models.user import User
@@ -124,6 +129,76 @@ async def list_records(
         records=[_record_to_out(r) for r in records],
         total=len(records),
     )
+
+
+@router.post("/{record_id}/analyze", response_model=RecordOut)
+async def analyze_record(
+    record_id: Any,
+    uid: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Analyze a medical record using the configured AI service (AI_SERVICE env var).
+    Returns cached result if already analyzed (avoids repeat API calls).
+    """
+    print("hii")
+    settings = get_settings()
+    print("Hii")
+
+    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    record = (
+        db.query(MedicalRecord)
+        .filter(MedicalRecord.id == record_id, MedicalRecord.user_id == db_user.user_id)
+        .first()
+    )
+    print("Hii")
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
+
+    # Return cached analysis if already done
+    if record.ai_analysis:
+        return _record_to_out(record)
+
+    # Download file from S3
+    try:
+        file_bytes = download_file_from_s3(record.s3_key)
+    except Exception:
+        raise HTTPException(status_code=500, detail="Could not retrieve file from storage")
+
+    # Route to the configured AI service
+    try:
+        ai_service = settings.ai_service.lower().strip()
+
+        if ai_service == "bedrock":
+            analysis_result = analyze_medical_image(
+                image_bytes=file_bytes,
+                content_type=record.content_type,
+                record_type=record.record_type,
+            )
+        else:
+            analysis_result = analyze_medical_image_nvidia(
+                image_bytes=file_bytes,
+                content_type=record.content_type,
+                record_type=record.record_type,
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"AI analysis failed: {str(e)}",
+        )
+
+    # Persist to DB
+    record.ai_analysis = json.dumps(analysis_result)
+    record.analyzed_at = datetime.utcnow()
+    db.commit()
+    db.refresh(record)
+
+    return _record_to_out(record)
 
 
 @router.get("/{record_id}/file")

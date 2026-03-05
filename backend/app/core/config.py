@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     aws_s3_bucket_name: str = "abha-sync-records"
     aws_s3_region: str = "ap-south-1"
 
+    # AWS Bedrock
+    aws_bedrock_region: str = "us-east-1"
+    ai_service: str = "bedrock"  # options: 'bedrock' or 'nvidia'
+    nvidia_api_key: str = ""     # required when AI_SERVICE=nvidia
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",")]

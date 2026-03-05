@@ -71,6 +71,8 @@ export const recordsApi = {
     getOne: (id: string) => api.get(`/api/v1/records/${id}`),
 
     delete: (id: string) => api.delete(`/api/v1/records/${id}`),
+
+    analyze: (id: string) => api.post(`/api/v1/records/${id}/analyze`),
 };
 
 export default api;

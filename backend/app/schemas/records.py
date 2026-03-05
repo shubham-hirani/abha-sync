@@ -11,6 +11,8 @@ class RecordOut(BaseModel):
     notes: str | None
     uploaded_at: str | None
     preview_url: str
+    ai_analysis: str | None = None
+    analyzed_at: str | None = None
 
 
 class RecordListResponse(BaseModel):

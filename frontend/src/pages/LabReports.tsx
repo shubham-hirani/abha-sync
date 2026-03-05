@@ -11,6 +11,8 @@ interface LabRecord {
     notes: string | null;
     uploaded_at: string | null;
     preview_url: string;
+    ai_analysis: string | null;
+    analyzed_at: string | null;
 }
 
 export default function LabReports() {
@@ -30,6 +32,9 @@ export default function LabReports() {
     // Delete confirmation
     const [deleteTarget, setDeleteTarget] = useState<LabRecord | null>(null);
     const [deleting, setDeleting] = useState(false);
+
+    // AI Analysis
+    const [analyzing, setAnalyzing] = useState(false);
 
     const loadRecords = useCallback(async () => {
         try {
@@ -121,6 +126,114 @@ export default function LabReports() {
         if (!token) return previewUrl;
         const separator = previewUrl.includes("?") ? "&" : "?";
         return `${previewUrl}${separator}token=${encodeURIComponent(token)}`;
+    };
+
+    const handleAnalyze = async () => {
+        if (!previewRecord) return;
+        setAnalyzing(true);
+        setError("");
+        try {
+            const res = await recordsApi.analyze(previewRecord.id);
+            const updated = res.data;
+            setRecords((prev) =>
+                prev.map((r) => (r.id === updated.id ? updated : r))
+            );
+            setPreviewRecord(updated);
+        } catch (err: any) {
+            setError(err.response?.data?.detail || "AI analysis failed.");
+        } finally {
+            setAnalyzing(false);
+        }
+    };
+
+    const renderAIInsights = (analysisJson: string) => {
+        try {
+            const data = JSON.parse(analysisJson);
+            return (
+                <div className="ai-insights">
+                    <h4 className="ai-insights-title">🤖 AI Insights</h4>
+                    {data.summary && <p className="ai-summary">{data.summary}</p>}
+
+                    {/* Parameter table for lab reports */}
+                    {data.parameters && data.parameters.length > 0 && (
+                        <table className="ai-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Value</th>
+                                    <th>Reference Range</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.parameters.map((p: any, i: number) => (
+                                    <tr key={i} className={p.status !== "normal" ? "ai-abnormal" : ""}>
+                                        <td>{p.name}</td>
+                                        <td className="ai-value">{p.value}</td>
+                                        <td>{p.reference_range}</td>
+                                        <td>
+                                            <span className={`ai-status ai-status-${p.status}`}>
+                                                {p.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+
+                    {/* Drug table (fallback if this is actually a prescription) */}
+                    {data.drugs && data.drugs.length > 0 && (
+                        <table className="ai-table">
+                            <thead>
+                                <tr>
+                                    <th>Drug</th>
+                                    <th>Dosage</th>
+                                    <th>Frequency</th>
+                                    <th>Instructions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.drugs.map((d: any, i: number) => (
+                                    <tr key={i}>
+                                        <td className="ai-drug-name">{d.name}</td>
+                                        <td>{d.dosage}</td>
+                                        <td>{d.frequency}</td>
+                                        <td>{d.instructions || d.duration || "—"}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+
+                    {/* Abnormal findings */}
+                    {data.abnormal_findings && data.abnormal_findings.length > 0 && (
+                        <div className="ai-abnormal-findings">
+                            <h5>⚠️ Abnormal Findings</h5>
+                            <ul>
+                                {data.abnormal_findings.map((f: string, i: number) => (
+                                    <li key={i}>{f}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+
+                    {/* Recommendations */}
+                    {data.recommendations && data.recommendations.length > 0 && (
+                        <div className="ai-recommendations">
+                            <h5>💡 Recommendations</h5>
+                            <ul>
+                                {data.recommendations.map((r: string, i: number) => (
+                                    <li key={i}>{r}</li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
+                </div>
+            );
+        } catch {
+            return <p className="ai-error">Could not parse analysis results.</p>;
+        }
     };
 
     return (
@@ -238,7 +351,18 @@ export default function LabReports() {
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
                             <h3>{previewRecord.file_name}</h3>
-                            <button className="modal-close" onClick={() => setPreviewRecord(null)}>✕</button>
+                            <div className="modal-header-actions">
+                                {!previewRecord.ai_analysis && (
+                                    <button
+                                        className="btn-analyze"
+                                        onClick={handleAnalyze}
+                                        disabled={analyzing}
+                                    >
+                                        {analyzing ? <><span className="spinner" /> Analyzing…</> : "🤖 Analyze"}
+                                    </button>
+                                )}
+                                <button className="modal-close" onClick={() => setPreviewRecord(null)}>✕</button>
+                            </div>
                         </div>
                         <div className="modal-body">
                             {previewRecord.content_type.startsWith("image/") ? (
@@ -261,11 +385,17 @@ export default function LabReports() {
                                     </a>
                                 </div>
                             )}
+
+                            {/* AI Insights */}
+                            {previewRecord.ai_analysis && renderAIInsights(previewRecord.ai_analysis)}
                         </div>
                         <div className="modal-footer">
                             <span className="type-badge lab_report">lab report</span>
                             <span>{formatSize(previewRecord.file_size)}</span>
                             <span>{formatDate(previewRecord.uploaded_at)}</span>
+                            {previewRecord.analyzed_at && (
+                                <span className="ai-badge">🤖 Analyzed {formatDate(previewRecord.analyzed_at)}</span>
+                            )}
                             {previewRecord.notes && (
                                 <p className="modal-notes">📝 {previewRecord.notes}</p>
                             )}
