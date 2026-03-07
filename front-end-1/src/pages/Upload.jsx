@@ -97,7 +97,7 @@ const Upload = () => {
             >
               <option value="">Select Record Type</option>
               <option value="lab_report">Lab Report</option>
-              <option value="prescription">Prescription</option>
+              <option value="report">Prescription</option>
             </select>
           </div>
           <div>

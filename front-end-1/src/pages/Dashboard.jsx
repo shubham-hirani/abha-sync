@@ -166,12 +166,12 @@ function Dashboard() {
         <StatCard {...statsData[0]} />
         {/* Beta: health metrics */}
         {statsData.slice(1).map((stat, i) => (
-          <div key={i} className="relative">
-            <span className="absolute top-3 right-3 z-10 px-1.5 py-0.5 text-xs font-bold bg-amber-400 text-white rounded-md">
+          <BetaBlock key={i} className="relative h-full" tooltip={`${stat.title} will be available in the next release.`}>
+            <span className="absolute top-3 right-3 z-10 px-1.5 py-0.5 text-xs font-bold bg-amber-400 text-white rounded-md shadow-sm">
               BETA
             </span>
             <StatCard {...stat} />
-          </div>
+          </BetaBlock>
         ))}
       </div>
 
@@ -179,7 +179,7 @@ function Dashboard() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         {/* HbA1c Trend Chart — Beta */}
         <div className="xl:col-span-2">
-          <div className="card relative">
+          <BetaBlock className="card relative h-full" tooltip="HbA1c chart monitoring will be available when integration is complete.">
             <BetaBanner featureName="HbA1c Trend Chart" />
             <div className="flex items-center justify-between mb-6 mt-2">
               <div>
@@ -192,7 +192,7 @@ function Dashboard() {
               </div>
             </div>
 
-            <div className="h-64 opacity-40">
+            <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={mockData.chartData.hba1cTrend}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -203,16 +203,16 @@ function Dashboard() {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-          </div>
+          </BetaBlock>
         </div>
 
         {/* Quick Actions */}
         <div className="space-y-6">
           {/* Health Alerts — Beta */}
-          <div className="card">
+          <BetaBlock className="card" tooltip="Intelligent health alerts will be available soon.">
             <BetaBanner featureName="Health Alerts" />
             <h3 className="text-lg font-semibold text-gray-800 mb-4 mt-2">Health Alerts</h3>
-            <div className="space-y-3 opacity-40 pointer-events-none">
+            <div className="space-y-3">
               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
                 <div className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-amber-500 rounded-full mt-2" />
@@ -223,13 +223,13 @@ function Dashboard() {
                 </div>
               </div>
             </div>
-          </div>
+          </BetaBlock>
 
           {/* Today's Reminders — Beta */}
-          <div className="card">
+          <BetaBlock className="card" tooltip="Medication reminders will be available soon.">
             <BetaBanner featureName="Today's Reminders" />
             <h3 className="text-lg font-semibold text-gray-800 mb-4 mt-2">Today's Reminders</h3>
-            <div className="space-y-3 opacity-40 pointer-events-none">
+            <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
                 <div>
                   <p className="text-sm font-medium text-blue-700">Medication reminders</p>
@@ -239,11 +239,11 @@ function Dashboard() {
             </div>
             <button
               onClick={() => navigate('/reminders')}
-              className="w-full text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium mt-3"
+              className="w-full text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium mt-3 disabled:pointer-events-none"
             >
               Manage Reminders →
             </button>
-          </div>
+          </BetaBlock>
         </div>
       </div>
 

@@ -1,16 +1,17 @@
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Upload, 
-  Clock, 
-  Bell, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Upload,
+  Clock,
+  Bell,
+  Settings,
   LogOut,
   Heart,
   X,
   Menu
 } from 'lucide-react'
+import { BetaBlock } from './BetaFeature'
 
 const Sidebar = ({ onLogout }) => {
   const location = useLocation()
@@ -42,7 +43,7 @@ const Sidebar = ({ onLogout }) => {
 
       {/* Overlay for mobile */}
       {isOpen && (
-        <div 
+        <div
           className="lg:hidden fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
           onClick={() => setIsOpen(false)}
         />
@@ -70,7 +71,7 @@ const Sidebar = ({ onLogout }) => {
             {menuItems.map((item) => {
               const Icon = item.icon
               const isActive = location.pathname === item.path
-              
+
               return (
                 <button
                   key={item.path}
@@ -86,25 +87,31 @@ const Sidebar = ({ onLogout }) => {
 
           {/* Quick Actions */}
           <div className="space-y-3 mb-8">
-            <button
-              onClick={() => handleNavigation('/cost-savings')}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 hover:shadow-lg transition-all duration-300"
-            >
-              <div className="text-left">
-                <p className="text-sm text-green-600 font-medium">Monthly Savings</p>
-                <p className="text-2xl font-bold text-green-700">₹2,450</p>
-              </div>
-            </button>
+            <BetaBlock tooltip="Monthly Savings will be available soon">
+              <button
+                onClick={() => handleNavigation('/cost-savings')}
+                disabled
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-green-100 to-emerald-100 border border-green-200 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <div className="text-left">
+                  <p className="text-sm text-green-600 font-medium opacity-80">Monthly Savings</p>
+                  <p className="text-2xl font-bold text-green-700 opacity-80">₹2,450</p>
+                </div>
+              </button>
+            </BetaBlock>
 
-            <button
-              onClick={() => handleNavigation('/report-explanation')}
-              className="w-full p-4 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 hover:shadow-lg transition-all duration-300"
-            >
-              <div className="text-left">
-                <p className="text-sm text-amber-600 font-medium">HbA1c Level</p>
-                <p className="text-2xl font-bold text-amber-700">8.5%</p>
-              </div>
-            </button>
+            <BetaBlock tooltip="HbA1c Tracking will be available soon">
+              <button
+                onClick={() => handleNavigation('/report-explanation')}
+                disabled
+                className="w-full p-4 rounded-xl bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:pointer-events-none"
+              >
+                <div className="text-left">
+                  <p className="text-sm text-amber-600 font-medium opacity-80">HbA1c Level</p>
+                  <p className="text-2xl font-bold text-amber-700 opacity-80">8.5%</p>
+                </div>
+              </button>
+            </BetaBlock>
           </div>
 
           {/* Logout */}

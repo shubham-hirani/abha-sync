@@ -21,10 +21,11 @@ class Settings(BaseSettings):
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
     aws_s3_bucket_name: str = "abha-sync-records"
-    aws_s3_region: str = "ap-south-1"
+    aws_s3_region: str = "us-east-1"
 
-    # AWS Bedrock
+    # AWS Bedrock & Textract
     aws_bedrock_region: str = "us-east-1"
+    aws_textract_region: str = "us-east-1"  # must match S3 bucket region
     ai_service: str = "bedrock"  # options: 'bedrock' or 'nvidia'
     nvidia_api_key: str = ""     # required when AI_SERVICE=nvidia
 
