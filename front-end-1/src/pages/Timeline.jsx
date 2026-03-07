@@ -8,10 +8,12 @@ import {
   Pill,
   Eye,
   Download,
-  Share2
+  Share2,
+  Upload
 } from 'lucide-react'
 
 import { useRecords } from '../context/RecordsContext'
+import { recordsApi } from '../services/api'
 import { BetaFeature } from '../components/BetaFeature'
 
 const Timeline = () => {
@@ -23,23 +25,36 @@ const Timeline = () => {
   const timelineData = useMemo(() => {
     return records.map(record => {
       // Try to extract better data from AI analysis if available
-      const ai = record.ai_analysis || {}
+      let ai = {}
+      if (record.ai_analysis) {
+        try {
+          ai = typeof record.ai_analysis === 'string'
+            ? JSON.parse(record.ai_analysis)
+            : record.ai_analysis
+        } catch (_) {
+          ai = {}
+        }
+      }
 
-      const condition = ai.summary?.split('.')[0] || record.file_name.replace(/\.[^/.]+$/, "") // Remove extension
+      const condition = ai.summary?.split('.')[0] || record.file_name.replace(/\.[^/.]+$/, "")
       const summary = ai.summary || record.notes || 'No summary available.'
+      const patientName = ai.patient_name || null
+      const reportDate = ai.date || null
 
       return {
         id: record.id,
         condition: condition.length > 50 ? condition.substring(0, 50) + '...' : condition,
         status: record.ai_analysis ? 'Reviewed' : 'Pending',
-        date: record.uploaded_at || new Date().toISOString(),
+        uploadedDate: record.uploaded_at || new Date().toISOString(),
+        reportDate,
         type: record.record_type,
-        doctor: 'ABHA-Sync Provider', // Mock as we don't extract doctor yet consistently
-        hospital: 'Uploaded Record',
+        doctor: ai.doctor_name || 'ABHA-Sync Provider',
+        hospital: ai.hospital_name || 'Uploaded Record',
+        patientName,
         summary,
         rawRecord: record
       }
-    }).sort((a, b) => new Date(b.date) - new Date(a.date))
+    }).sort((a, b) => new Date(b.uploadedDate) - new Date(a.uploadedDate))
   }, [records])
 
   // Compute filter counts
@@ -58,7 +73,7 @@ const Timeline = () => {
       if (key !== 'all') {
         baseFilters.push({
           id: key,
-          label: key.charAt(0).toUpperCase() + key.slice(1),
+          label: key.charAt(0).toUpperCase() + key.slice(1).replace('_', ' '),
           count: counts[key]
         })
       }
@@ -69,7 +84,8 @@ const Timeline = () => {
 
   const getIconForType = (type) => {
     switch (type) {
-      case 'lab': return TestTube
+      case 'lab':
+      case 'lab_report': return TestTube
       case 'prescription': return Pill
       case 'consultation': return Stethoscope
       default: return FileText
@@ -82,6 +98,15 @@ const Timeline = () => {
       case 'Pending': return 'bg-amber-100 text-amber-700 border-amber-200'
       default: return 'bg-gray-100 text-gray-700 border-gray-200'
     }
+  }
+
+  const handleDownload = (recordId, fileName) => {
+    const url = recordsApi.fileUrl(recordId)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName || 'medical-record'
+    a.target = '_blank'
+    a.click()
   }
 
   const filteredTimeline = timelineData.filter(item => {
@@ -142,13 +167,12 @@ const Timeline = () => {
               key={filter.id}
               onClick={() => setSelectedFilter(filter.id)}
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${selectedFilter === filter.id
-                  ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? 'bg-indigo-500 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
               {filter.label}
-              <span className={`ml-2 text-xs ${selectedFilter === filter.id ? 'text-indigo-200' : 'text-gray-500'
-                }`}>
+              <span className={`ml-2 text-xs ${selectedFilter === filter.id ? 'text-indigo-200' : 'text-gray-500'}`}>
                 ({filter.count})
               </span>
             </button>
@@ -181,25 +205,45 @@ const Timeline = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <h3 className="text-lg font-semibold text-gray-800">{item.condition}</h3>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getColorForStatus(item.status)
-                            }`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getColorForStatus(item.status)}`}>
                             {item.status}
                           </span>
                         </div>
 
+                        {/* Dual Dates */}
                         <div className="space-y-1 text-sm text-gray-600">
-                          <div className="flex items-center gap-4">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {new Date(item.date).toLocaleDateString('en-IN', {
+                          {item.reportDate && (
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-blue-500" />
+                              <span className="font-medium text-blue-700">Report Date:</span>
+                              <span>{item.reportDate}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Upload className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium text-gray-600">Uploaded:</span>
+                            <span>
+                              {new Date(item.uploadedDate).toLocaleDateString('en-IN', {
                                 weekday: 'long',
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric'
                               })}
                             </span>
-                            <span className="capitalize">{item.type}</span>
+                            <span className="capitalize text-gray-500">· {item.type?.replace('_', ' ')}</span>
                           </div>
+                          {item.patientName && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-600">Patient:</span>
+                              <span>{item.patientName}</span>
+                            </div>
+                          )}
+                          {item.doctor && item.doctor !== 'ABHA-Sync Provider' && (
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-gray-600">Doctor:</span>
+                              <span>{item.doctor}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -231,11 +275,13 @@ const Timeline = () => {
                       className="px-3 py-1 text-xs text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-all duration-300">
                       View Details
                     </button>
-                    <BetaFeature tooltip="Downloading records will be available soon">
-                      <button className="px-3 py-1 text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-300">
-                        Download
-                      </button>
-                    </BetaFeature>
+                    <button
+                      onClick={() => handleDownload(item.id, item.rawRecord.file_name)}
+                      className="flex items-center gap-1 px-3 py-1 text-xs text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-all duration-300"
+                    >
+                      <Download className="w-3 h-3" />
+                      Download
+                    </button>
                   </div>
                 </div>
               </div>
@@ -253,16 +299,10 @@ const Timeline = () => {
             No medical records match your current filter selection.
           </p>
           <div className="flex items-center justify-center gap-3">
-            <button
-              onClick={() => setSelectedFilter('all')}
-              className="btn-secondary"
-            >
+            <button onClick={() => setSelectedFilter('all')} className="btn-secondary">
               Clear Filters
             </button>
-            <button
-              onClick={() => navigate('/upload')}
-              className="btn-primary"
-            >
+            <button onClick={() => navigate('/upload')} className="btn-primary">
               Upload New Record
             </button>
           </div>

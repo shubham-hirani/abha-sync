@@ -11,15 +11,15 @@ const Upload = () => {
   const { records, addRecord, updateRecord } = useRecords()
 
   const [uploadedFile, setUploadedFile] = React.useState(null)
-  const [recordType, setRecordType] = React.useState('record')
+  const [recordType, setRecordType] = React.useState('')
   const [notes, setNotes] = React.useState('')
   const [uploading, setUploading] = React.useState(false)
   const [analyzing, setAnalyzing] = React.useState(false)
   const [uploadedRecord, setUploadedRecord] = React.useState(null)
   const [error, setError] = React.useState('')
 
-  const handleFileSelect = (file) => {
-    setUploadedFile(file)
+  const handleFileSelect = (fileObj) => {
+    setUploadedFile(fileObj ? fileObj.file : null)
     setUploadedRecord(null)
     setError('')
   }
@@ -95,11 +95,9 @@ const Upload = () => {
               onChange={(e) => setRecordType(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/70"
             >
-              <option value="record">General Record</option>
-              <option value="lab">Lab Report</option>
+              <option value="">Select Record Type</option>
+              <option value="lab_report">Lab Report</option>
               <option value="prescription">Prescription</option>
-              <option value="consultation">Consultation</option>
-              <option value="imaging">Imaging/Scan</option>
             </select>
           </div>
           <div>
@@ -236,8 +234,8 @@ const Upload = () => {
                   </div>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-full font-medium ${record.ai_analysis
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-amber-100 text-amber-700'
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
                   }`}>
                   {record.ai_analysis ? 'Analyzed' : 'Pending'}
                 </span>
