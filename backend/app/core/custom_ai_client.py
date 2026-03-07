@@ -66,23 +66,26 @@ RULES:
 - Never use unexplained medical abbreviations.
 - Be honest but not alarming. Be informative and empowering.
 - Suggest practical dietary and lifestyle changes where relevant.
-- Suggest over-the-counter remedies or supplements only if they are widely accepted and safe (e.g., iron supplements for low iron). Always say "consult your doctor before taking any supplement".
+- Suggest supplements only if widely accepted and safe. Always note "consult your doctor before taking any supplement".
 - Always indicate clearly whether the person needs to see a doctor and how urgently.
+- You MUST return every key in the JSON schema below, even if empty. Use [] for empty arrays and "Not specified" for empty strings.
 
-Return this exact JSON structure:
+Return ONLY this exact JSON structure, no markdown fences, no extra text:
 {
   "analysis_type": "lab_report",
-  "test_name": "Full name of the test in plain words (e.g., Complete Blood Count - a test that checks your blood cells)",
-  "summary": "2-3 sentence overall plain-language summary. E.g., 'Overall your blood test results look mostly normal. Your iron levels are a little low, which might explain why you have been feeling tired. Everything else is within a healthy range.'",
+  "summary": "2-3 sentence overall plain-language summary of the test results.",
+  "doctor_name": "Doctor or lab name if visible, else Not specified",
+  "patient_name": "Patient name if visible on the report, else Not specified",
+  "date": "Report date if visible, else Not specified",
   "overall_health_verdict": "good | attention_needed | action_required",
   "parameters": [
     {
-      "name": "Parameter name and what it stands for in plain terms (e.g., Hemoglobin - the protein in blood that carries oxygen)",
-      "value": "Your measured value with unit (e.g., 10.5 g/dL)",
+      "name": "Parameter name and what it stands for in plain terms (e.g., Hemoglobin - carries oxygen in blood)",
+      "value": "Measured value with unit (e.g., 10.5 g/dL)",
       "reference_range": "Healthy range (e.g., 12-16 g/dL for women)",
       "status": "normal | high | low | critical",
-      "plain_meaning": "In 1-2 simple sentences, explain what this result means for this person. E.g., 'Your hemoglobin is a little low. This means your blood is not carrying as much oxygen as it should, which can make you feel tired or short of breath.'",
-      "what_to_do": "Specific, practical action for this parameter. E.g., 'Eat more iron-rich foods like spinach, lentils, eggs, and red meat. You can also ask your doctor about iron supplements.'"
+      "plain_meaning": "1-2 simple sentences explaining what this result means.",
+      "what_to_do": "Specific practical action for this parameter."
     }
   ],
   "abnormal_findings": [
@@ -92,30 +95,37 @@ Return this exact JSON structure:
       "severity": "mild | moderate | severe"
     }
   ],
-  "diet_and_lifestyle": [
-    "Specific dietary suggestions based on the results. E.g., Include more leafy greens in your meals for better iron levels.",
-    "Lifestyle suggestions. E.g., Avoid alcohol as it can affect your liver test results.",
-    "Exercise or rest suggestions if relevant."
-  ],
-  "medicines_and_supplements": [
+  "drugs": [
     {
-      "name": "Name of supplement or OTC remedy (e.g., Iron supplement, Vitamin D)",
-      "reason": "Why it might help based on the results",
-      "caution": "Always consult your doctor before starting any supplement or medicine."
+      "name": "Name of supplement or medication suggested based on results (e.g., Vitamin D Supplement)",
+      "what_it_is": "1-2 plain sentences: what this supplement does and why the results suggest it",
+      "dosage": "Typical dosage if known, else Not specified",
+      "frequency": "How often to take it",
+      "duration": "How long typically",
+      "when_to_take": "Best time to take it",
+      "side_effects": ["Common side effects in plain words"],
+      "warnings": ["Important warnings"],
+      "food_interactions": "Any food to avoid or take with",
+      "instructions": "Any other special instructions"
     }
   ],
+  "diet_and_lifestyle": [
+    "Specific dietary suggestion based on the results.",
+    "Lifestyle suggestion.",
+    "Exercise or rest suggestion if relevant."
+  ],
+  "general_precautions": [
+    "Simple actionable precaution for the patient to follow"
+  ],
   "when_to_see_doctor": {
-    "urgency": "not_needed | routine_checkup | within_a_week | see_doctor_soon | emergency",
-    "plain_recommendation": "Clear, warm guidance. E.g., 'Your results look mostly fine. We suggest you share these results with your doctor at your next routine visit, ideally within the next month.' OR 'Some of your results are significantly outside normal range. Please see your doctor within the next few days to discuss these results and get proper treatment.'",
-    "red_flags": ["Any symptoms that if present means they should go to emergency/doctor immediately, in plain language. E.g., If you feel severe chest pain or difficulty breathing, go to the hospital immediately."]
+    "urgency": "routine | soon | urgent | immediate",
+    "reason": "Plain-language explanation of when and why they should contact their doctor."
   },
-  "recommendations": [
-    "Overall actionable recommendations in plain language, prioritized from most to least important"
-  ]
+  "reassurance": "A short, warm, encouraging note to the patient about their health."
 }
 
-If you cannot read or identify any field, use "Not specified".
-Flag parameters as critical only if they are significantly outside normal range and pose immediate health risk.
+If you cannot read or identify any field, use "Not specified" for strings or [] for arrays.
+Flag parameters as critical only if significantly outside normal range and pose immediate risk.
 Return ONLY valid JSON, no markdown, no extra text."""
 
 GENERIC_PROMPT = """You are a friendly medical assistant helping a regular person (not a doctor) understand a medical document.
@@ -129,6 +139,9 @@ Return this exact JSON structure:
 {
   "analysis_type": "medical_document",
   "summary": "2-3 sentence plain-language overview of what this document is about",
+  "doctor_name": "Doctor or hospital name if visible, else Not specified",
+  "patient_name": "Patient name if visible, else Not specified",
+  "date": "Document date if visible, else Not specified",
   "key_findings": [
     "Key piece of information from the document, explained in plain language"
   ],
@@ -137,12 +150,13 @@ Return this exact JSON structure:
     "Practical, actionable recommendations in plain language"
   ],
   "when_to_see_doctor": {
-    "urgency": "not_needed | routine_checkup | within_a_week | see_doctor_soon | emergency",
+    "urgency": "routine | soon | urgent | immediate",
     "reason": "Plain-language explanation of when and why to see a doctor"
-  }
+  },
+  "reassurance": "A short, warm, encouraging note to the patient about their health."
 }
 
-If you cannot read or identify any field, use "Not specified".
+If you cannot read or identify any field, use "Not specified" for strings or [] for arrays.
 Return ONLY valid JSON, no markdown, no extra text."""
 
 
@@ -271,7 +285,7 @@ def analyze_medical_text(extracted_text: str, record_type: str) -> dict:
         "stream": False,
     }
 
-    response = requests.post(NVIDIA_INVOKE_URL, headers=headers, json=payload, timeout=120)
+    response = requests.post(NVIDIA_INVOKE_URL, headers=headers, json=payload, timeout=1200)
     response.raise_for_status()
 
     response_data = response.json()

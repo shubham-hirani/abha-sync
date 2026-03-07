@@ -51,7 +51,7 @@ services:
   # ─────────────────────────────────────
   frontend:
     build:
-      context: ./frontend
+      context: ./front-end-1
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
