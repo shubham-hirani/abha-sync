@@ -1,36 +1,67 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Upload as UploadIcon, ArrowRight, CheckCircle } from 'lucide-react'
+import { Upload as UploadIcon, ArrowRight, CheckCircle, FileText, Clock } from 'lucide-react'
 
 import FileUpload from '../components/FileUpload'
+import { recordsApi } from '../services/api'
+import { useRecords } from '../context/RecordsContext'
 
 const Upload = () => {
   const navigate = useNavigate()
+  const { records, addRecord, updateRecord } = useRecords()
+
   const [uploadedFile, setUploadedFile] = React.useState(null)
-  const [processing, setProcessing] = React.useState(false)
-  const [processed, setProcessed] = React.useState(false)
+  const [recordType, setRecordType] = React.useState('record')
+  const [notes, setNotes] = React.useState('')
+  const [uploading, setUploading] = React.useState(false)
+  const [analyzing, setAnalyzing] = React.useState(false)
+  const [uploadedRecord, setUploadedRecord] = React.useState(null)
+  const [error, setError] = React.useState('')
 
   const handleFileSelect = (file) => {
     setUploadedFile(file)
-    setProcessed(false)
+    setUploadedRecord(null)
+    setError('')
   }
 
-  const handleProcessWithAI = () => {
+  const handleProcessWithAI = async () => {
     if (!uploadedFile) return
-    
-    setProcessing(true)
-    
-    // Mock AI processing
-    setTimeout(() => {
-      setProcessing(false)
-      setProcessed(true)
-      
-      // Navigate to review after processing
-      setTimeout(() => {
-        navigate('/review-extraction')
-      }, 1500)
-    }, 3000)
+    setError('')
+    setUploading(true)
+
+    try {
+      // Step 1: Upload the file
+      const record = await recordsApi.upload(uploadedFile, recordType, notes)
+      addRecord(record)
+      setUploadedRecord(record)
+      setUploading(false)
+
+      // Step 2: Analyze with AI
+      setAnalyzing(true)
+      try {
+        const analyzed = await recordsApi.analyze(record.id)
+        updateRecord(analyzed)
+        setUploadedRecord(analyzed)
+
+        // Store record id so ReviewExtraction can look it up
+        sessionStorage.setItem('current_record_id', analyzed.id)
+      } catch (analyzeErr) {
+        // Analysis failed — still proceed with the uploaded record
+        sessionStorage.setItem('current_record_id', record.id)
+      } finally {
+        setAnalyzing(false)
+      }
+
+      // Navigate to review after brief pause
+      setTimeout(() => navigate('/review-extraction'), 1500)
+    } catch (err) {
+      setError(err.message || 'Upload failed. Please try again.')
+      setUploading(false)
+      setAnalyzing(false)
+    }
   }
+
+  const processing = uploading || analyzing
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -51,8 +82,38 @@ const Upload = () => {
           </div>
           <h2 className="text-xl font-semibold text-gray-800">Select Your Medical Document</h2>
           <p className="text-gray-500 mt-1">
-            Supported formats: JPG, PNG, PDF • Maximum size: 10MB
+            Supported formats: JPG, PNG, PDF • Maximum size: 10 MB
           </p>
+        </div>
+
+        {/* Record type selector */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Record Type</label>
+            <select
+              value={recordType}
+              onChange={(e) => setRecordType(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/70"
+            >
+              <option value="record">General Record</option>
+              <option value="lab">Lab Report</option>
+              <option value="prescription">Prescription</option>
+              <option value="consultation">Consultation</option>
+              <option value="imaging">Imaging/Scan</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Notes <span className="text-gray-400 font-normal">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="e.g., Blood sugar test — Feb 2024"
+              className="w-full px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/70"
+            />
+          </div>
         </div>
 
         <FileUpload
@@ -64,19 +125,34 @@ const Upload = () => {
           processing={processing}
         />
 
+        {/* Error */}
+        {error && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+            {error}
+          </div>
+        )}
+
         {/* Process Button */}
-        {uploadedFile && !processed && (
+        {uploadedFile && !uploadedRecord && (
           <div className="mt-6 text-center">
             <button
               onClick={handleProcessWithAI}
               disabled={processing}
               className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {processing ? (
+              {uploading ? (
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   <div>
-                    <p className="font-medium">Processing with AI...</p>
+                    <p className="font-medium">Uploading…</p>
+                    <p className="text-sm opacity-90">Storing your record securely</p>
+                  </div>
+                </div>
+              ) : analyzing ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div>
+                    <p className="font-medium">Analyzing with AI…</p>
                     <p className="text-sm opacity-90">Extracting medical information</p>
                   </div>
                 </div>
@@ -91,20 +167,22 @@ const Upload = () => {
         )}
 
         {/* Success State */}
-        {processed && (
+        {uploadedRecord && (
           <div className="mt-6 text-center">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-xl mb-4">
               <CheckCircle className="w-5 h-5" />
-              Processing Complete!
+              {uploadedRecord.ai_analysis ? 'Analysis Complete!' : 'Upload Complete!'}
             </div>
             <p className="text-gray-600 mb-4">
-              Your document has been successfully analyzed. Review the extracted information.
+              {uploadedRecord.ai_analysis
+                ? 'Your document has been analyzed. Review the extracted information.'
+                : 'Your document has been uploaded. Review and manage the record.'}
             </p>
             <button
               onClick={() => navigate('/review-extraction')}
               className="btn-primary"
             >
-              Review Extraction →
+              Review Record →
             </button>
           </div>
         )}
@@ -112,72 +190,62 @@ const Upload = () => {
 
       {/* Instructions */}
       <div className="grid md:grid-cols-3 gap-6">
-        <div className="card text-center">
-          <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-blue-600 font-bold text-xl">1</span>
+        {[
+          { n: 1, color: 'blue', title: 'Upload Document', desc: 'Take a clear photo or upload a PDF of your medical report' },
+          { n: 2, color: 'indigo', title: 'AI Processing', desc: 'Our AI analyzes and extracts key medical information accurately' },
+          { n: 3, color: 'cyan', title: 'Review & Save', desc: 'Review extracted data, make edits if needed, and save to your records' },
+        ].map(({ n, color, title, desc }) => (
+          <div key={n} className="card text-center">
+            <div className={`w-12 h-12 bg-${color}-100 rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+              <span className={`text-${color}-600 font-bold text-xl`}>{n}</span>
+            </div>
+            <h3 className="font-semibold text-gray-800 mb-2">{title}</h3>
+            <p className="text-gray-600 text-sm">{desc}</p>
           </div>
-          <h3 className="font-semibold text-gray-800 mb-2">Upload Document</h3>
-          <p className="text-gray-600 text-sm">
-            Take a clear photo or upload a PDF of your medical report
-          </p>
-        </div>
-        
-        <div className="card text-center">
-          <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-indigo-600 font-bold text-xl">2</span>
-          </div>
-          <h3 className="font-semibold text-gray-800 mb-2">AI Processing</h3>
-          <p className="text-gray-600 text-sm">
-            Our AI analyzes and extracts key medical information accurately
-          </p>
-        </div>
-        
-        <div className="card text-center">
-          <div className="w-12 h-12 bg-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <span className="text-cyan-600 font-bold text-xl">3</span>
-          </div>
-          <h3 className="font-semibold text-gray-800 mb-2">Review & Save</h3>
-          <p className="text-gray-600 text-sm">
-            Review extracted data, make edits if needed, and save to your records
-          </p>
-        </div>
+        ))}
       </div>
 
-      {/* Recent Uploads */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Uploads</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-lg flex items-center justify-center">
-                <UploadIcon className="w-5 h-5 text-white" />
+      {/* Recent Uploads — pulled from real records */}
+      {records.length > 0 && (
+        <div className="card">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Uploads</h3>
+          <div className="space-y-3">
+            {records.slice(0, 5).map((record) => (
+              <div
+                key={record.id}
+                className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200/50 hover:bg-gray-50 transition-colors cursor-pointer"
+                onClick={() => {
+                  sessionStorage.setItem('current_record_id', record.id)
+                  navigate('/review-extraction')
+                }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-indigo-400 to-cyan-500 rounded-lg flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 truncate max-w-64">{record.file_name}</p>
+                    <p className="text-sm text-gray-500 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {record.uploaded_at
+                        ? new Date(record.uploaded_at).toLocaleDateString('en-IN')
+                        : 'Recently uploaded'}
+                      {' • '}
+                      <span className="capitalize">{record.record_type}</span>
+                    </p>
+                  </div>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${record.ai_analysis
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-amber-100 text-amber-700'
+                  }`}>
+                  {record.ai_analysis ? 'Analyzed' : 'Pending'}
+                </span>
               </div>
-              <div>
-                <p className="font-medium text-gray-800">Lab Report - Blood Sugar</p>
-                <p className="text-sm text-gray-500">Uploaded Feb 20, 2024</p>
-              </div>
-            </div>
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-              Processed
-            </span>
-          </div>
-          
-          <div className="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-200/50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
-                <UploadIcon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <p className="font-medium text-gray-800">Prescription - Diabetes Medication</p>
-                <p className="text-sm text-gray-500">Uploaded Feb 15, 2024</p>
-              </div>
-            </div>
-            <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
-              Processed
-            </span>
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

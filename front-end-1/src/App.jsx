@@ -1,6 +1,9 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { RecordsProvider } from './context/RecordsContext'
+
 // Layout Components
 import Sidebar from './components/Sidebar'
 import Navbar from './components/Navbar'
@@ -17,66 +20,72 @@ import Consent from './pages/Consent'
 import Reminders from './pages/Reminders'
 import Settings from './pages/Settings'
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = React.useState(false)
+// ─── Loading Screen ──────────────────────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-600 font-medium">Loading ABHA-Sync…</p>
+      </div>
+    </div>
+  )
+}
 
-  // Mock login state
-  React.useEffect(() => {
-    const loginState = localStorage.getItem('isLoggedIn')
-    if (loginState === 'true') {
-      setIsLoggedIn(true)
-    }
-  }, [])
+// ─── Inner App (has access to AuthContext) ───────────────────────────────────
+function AppInner() {
+  const { isAuthenticated, loading, logout } = useAuth()
 
-  const handleLogin = () => {
-    setIsLoggedIn(true)
-    localStorage.setItem('isLoggedIn', 'true')
-  }
+  if (loading) return <LoadingScreen />
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    localStorage.removeItem('isLoggedIn')
-  }
-
-  if (!isLoggedIn) {
+  if (!isAuthenticated) {
     return (
       <Router>
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
-          <Login onLogin={handleLogin} />
+          <Routes>
+            <Route path="*" element={<Login />} />
+          </Routes>
         </div>
       </Router>
     )
   }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
-        <div className="flex">
-          {/* Sidebar */}
-          <Sidebar onLogout={handleLogout} />
-          
-          {/* Main Content */}
-          <div className="flex-1 lg:ml-64">
-            <Navbar onLogout={handleLogout} />
-            
-            <main className="p-6">
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/upload" element={<Upload />} />
-                <Route path="/review-extraction" element={<ReviewExtraction />} />
-                <Route path="/cost-savings" element={<CostSavings />} />
-                <Route path="/report-explanation" element={<ReportExplanation />} />
-                <Route path="/timeline" element={<Timeline />} />
-                <Route path="/consent" element={<Consent />} />
-                <Route path="/reminders" element={<Reminders />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
-            </main>
+    <RecordsProvider>
+      <Router>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-cyan-50">
+          <div className="flex">
+            <Sidebar onLogout={logout} />
+            <div className="flex-1 lg:ml-64">
+              <Navbar onLogout={logout} />
+              <main className="p-6">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/upload" element={<Upload />} />
+                  <Route path="/review-extraction" element={<ReviewExtraction />} />
+                  <Route path="/cost-savings" element={<CostSavings />} />
+                  <Route path="/report-explanation" element={<ReportExplanation />} />
+                  <Route path="/timeline" element={<Timeline />} />
+                  <Route path="/consent" element={<Consent />} />
+                  <Route path="/reminders" element={<Reminders />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </main>
+            </div>
           </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </RecordsProvider>
+  )
+}
+
+// ─── Root App ────────────────────────────────────────────────────────────────
+function App() {
+  return (
+    <AuthProvider>
+      <AppInner />
+    </AuthProvider>
   )
 }
 

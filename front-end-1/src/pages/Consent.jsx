@@ -1,55 +1,28 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { 
-  Shield, 
-  AlertTriangle, 
-  Check, 
-  Lock, 
+import {
+  Shield,
+  Check,
+  Lock,
   Upload,
   FileText,
   Users,
   ArrowRight
 } from 'lucide-react'
 
-import { mockData } from '../mock/mockData'
+import { BetaFeature } from '../components/BetaFeature'
 
 const Consent = () => {
   const navigate = useNavigate()
   const [consents, setConsents] = React.useState({
-    uploadToABHA: false,
+    uploadToABHA: true,
     shareWithDoctors: false,
     anonymousResearch: false,
     marketingCommunication: false
   })
-  const [uploading, setUploading] = React.useState(false)
-  const [uploaded, setUploaded] = React.useState(false)
-  
-  // Get current HbA1c value for warning
-  const hba1cValue = 8.5
-  const showCriticalWarning = hba1cValue > 9
 
   const handleConsentChange = (key) => {
     setConsents(prev => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  const handleUploadToABHA = () => {
-    if (!consents.uploadToABHA) {
-      alert('Please provide consent to upload records to ABHA.')
-      return
-    }
-    
-    setUploading(true)
-    
-    // Mock upload process
-    setTimeout(() => {
-      setUploading(false)
-      setUploaded(true)
-      
-      // Navigate to dashboard after successful upload
-      setTimeout(() => {
-        navigate('/dashboard')
-      }, 2000)
-    }, 3000)
   }
 
   const consentItems = [
@@ -73,13 +46,6 @@ const Consent = () => {
       description: 'Contribute anonymized data to medical research for improving healthcare outcomes.',
       icon: FileText,
       required: false
-    },
-    {
-      key: 'marketingCommunication',
-      title: 'Health Tips & Reminders',
-      description: 'Receive personalized health tips, medication reminders, and wellness content.',
-      icon: Upload,
-      required: false
     }
   ]
 
@@ -93,44 +59,23 @@ const Consent = () => {
         </p>
       </div>
 
-      {/* Critical Warning (if HbA1c > 9) */}
-      {showCriticalWarning && (
-        <div className="card border-l-4 border-red-500 bg-red-50 border-red-200">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
-            <div>
-              <h3 className="text-lg font-semibold text-red-800 mb-2">Critical Health Alert</h3>
-              <p className="text-red-700 mb-3">
-                Your HbA1c level ({hba1cValue}%) is critically high. Immediate medical attention may be required. 
-                We strongly recommend uploading this record to ABHA for emergency access by healthcare providers.
-              </p>
-              <div className="flex items-center gap-2 text-sm text-red-600">
-                <Lock className="w-4 h-4" />
-                <span>Your data will remain secure and private</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Consent Options */}
       <div className="card">
         <h2 className="text-xl font-semibold text-gray-800 mb-6">Data Sharing Preferences</h2>
-        
+
         <div className="space-y-4">
           {consentItems.map((item) => {
             const Icon = item.icon
             const isChecked = consents[item.key]
-            
+
             return (
               <div key={item.key} className="border border-gray-200/50 rounded-xl p-4 hover:border-gray-300 transition-all duration-300">
                 <label className="flex items-start gap-4 cursor-pointer">
                   <div className="flex-shrink-0 mt-1">
-                    <div className={`w-5 h-5 border-2 rounded transition-all duration-300 flex items-center justify-center ${
-                      isChecked 
-                        ? 'bg-indigo-500 border-indigo-500' 
+                    <div className={`w-5 h-5 border-2 rounded transition-all duration-300 flex items-center justify-center ${isChecked
+                        ? 'bg-indigo-500 border-indigo-500'
                         : 'border-gray-300 hover:border-indigo-400'
-                    }`}>
+                      }`}>
                       {isChecked && <Check className="w-3 h-3 text-white" />}
                     </div>
                     <input
@@ -140,21 +85,16 @@ const Consent = () => {
                       className="hidden"
                     />
                   </div>
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <Icon className="w-5 h-5 text-indigo-600" />
                       <h3 className="font-semibold text-gray-800">
                         {item.title}
-                        {item.required && (
-                          <span className="text-red-500 ml-1">*</span>
-                        )}
+                        {item.required && <span className="text-red-500 ml-1">*</span>}
                       </h3>
                     </div>
                     <p className="text-gray-600 text-sm">{item.description}</p>
-                    {item.required && (
-                      <p className="text-xs text-red-600 mt-1">Required for ABHA upload</p>
-                    )}
                   </div>
                 </label>
               </div>
@@ -170,7 +110,7 @@ const Consent = () => {
             <Lock className="w-6 h-6 text-green-600" />
             <h3 className="text-lg font-semibold text-gray-800">Your Data is Secure</h3>
           </div>
-          
+
           <ul className="space-y-3 text-sm text-gray-700">
             <li className="flex items-start gap-2">
               <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
@@ -180,23 +120,15 @@ const Consent = () => {
               <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
               HIPAA compliant data handling
             </li>
-            <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-              No data sharing without your consent
-            </li>
-            <li className="flex items-start gap-2">
-              <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
-              Right to delete your data anytime
-            </li>
           </ul>
         </div>
-        
+
         <div className="card">
           <div className="flex items-center gap-3 mb-4">
             <Shield className="w-6 h-6 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">ABHA Benefits</h3>
           </div>
-          
+
           <ul className="space-y-3 text-sm text-gray-700">
             <li className="flex items-start gap-2">
               <ArrowRight className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -206,77 +138,33 @@ const Consent = () => {
               <ArrowRight className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
               Emergency medical information
             </li>
-            <li className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              Reduced duplicate tests
-            </li>
-            <li className="flex items-start gap-2">
-              <ArrowRight className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              Better continuity of care
-            </li>
           </ul>
         </div>
       </div>
 
       {/* Upload Button */}
       <div className="text-center space-y-4">
-        {uploaded ? (
-          <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-6 py-3 rounded-xl font-medium">
-            <Check className="w-5 h-5" />
-            Successfully uploaded to ABHA!
-          </div>
-        ) : (
+        <BetaFeature tooltip="ABHA Network Upload API is coming soon">
           <button
-            onClick={handleUploadToABHA}
-            disabled={!consents.uploadToABHA || uploading}
-            className={`btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed ${
-              uploading ? 'cursor-wait' : ''
-            }`}
+            disabled
+            className="btn-primary text-lg px-8 py-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {uploading ? (
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                <div>
-                  <p className="font-semibold">Uploading to ABHA...</p>
-                  <p className="text-sm opacity-90">Securing your health data</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Upload className="w-6 h-6" />
-                Upload to ABHA
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Upload className="w-6 h-6" />
+              Upload to ABHA
+            </div>
           </button>
-        )}
-        
+        </BetaFeature>
+
         <p className="text-sm text-gray-500 max-w-md mx-auto">
-          By uploading to ABHA, you agree to our{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="#" className="text-indigo-600 hover:text-indigo-700 font-medium">
-            Privacy Policy
-          </a>
+          Currently running in standalone mode (no ABHA integration yet).
         </p>
       </div>
 
       {/* Alternative Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6 border-t border-gray-200/50">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="btn-secondary"
-        >
-          Skip for Now
-        </button>
-        
-        <button
-          onClick={() => navigate('/settings')}
-          className="btn-secondary flex items-center gap-2"
-        >
-          Manage Privacy Settings
-          <ArrowRight className="w-4 h-4" />
+      <div className="flex gap-4 justify-center pt-6 border-t border-gray-200/50">
+        <button onClick={() => navigate('/dashboard')} className="btn-secondary">
+          Continue to Dashboard
         </button>
       </div>
     </div>

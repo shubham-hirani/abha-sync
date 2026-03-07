@@ -1,8 +1,9 @@
 import React from 'react'
-import { Bell, Search, User, ChevronDown } from 'lucide-react'
-import { mockData } from '../mock/mockData'
+import { Bell, Search, User, ChevronDown, LogOut } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 const Navbar = ({ onLogout }) => {
+  const { user } = useAuth()
   const [showProfileMenu, setShowProfileMenu] = React.useState(false)
   const [showNotifications, setShowNotifications] = React.useState(false)
 
@@ -60,11 +61,10 @@ const Navbar = ({ onLogout }) => {
                     {notifications.map((notif) => (
                       <div
                         key={notif.id}
-                        className={`p-3 rounded-xl border transition-all duration-300 ${
-                          notif.unread 
-                            ? 'bg-indigo-50/50 border-indigo-200' 
+                        className={`p-3 rounded-xl border transition-all duration-300 ${notif.unread
+                            ? 'bg-indigo-50/50 border-indigo-200'
                             : 'bg-white/30 border-gray-200/50'
-                        }`}
+                          }`}
                       >
                         <p className="text-sm text-gray-700">{notif.text}</p>
                         <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
@@ -88,8 +88,10 @@ const Navbar = ({ onLogout }) => {
                   <User size={16} className="text-white" />
                 </div>
                 <div className="hidden lg:block text-left">
-                  <p className="text-sm font-medium text-gray-800">{mockData.user.name}</p>
-                  <p className="text-xs text-gray-500">{mockData.user.mobile}</p>
+                  <p className="text-sm font-medium text-gray-800">
+                    {user?.email ? user.email.split('@')[0] : 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500 truncate max-w-32">{user?.email || ''}</p>
                 </div>
                 <ChevronDown size={16} className="text-gray-600" />
               </button>
@@ -97,8 +99,13 @@ const Navbar = ({ onLogout }) => {
               {showProfileMenu && (
                 <div className="absolute right-0 top-12 w-48 bg-white border border-white/20 rounded-2xl p-2 shadow-2xl z-[60]">
                   <div className="p-3 border-b border-gray-200/50">
-                    <p className="font-medium text-gray-800">{mockData.user.name}</p>
-                    <p className="text-sm text-gray-500">{mockData.user.email}</p>
+                    <p className="font-medium text-gray-800 truncate">
+                      {user?.email ? user.email.split('@')[0] : 'User'}
+                    </p>
+                    <p className="text-sm text-gray-500 truncate">{user?.email || ''}</p>
+                    {user?.abha_number && (
+                      <p className="text-xs text-indigo-600 mt-0.5">ABHA: {user.abha_number}</p>
+                    )}
                   </div>
                   <div className="py-2">
                     <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-white/50 rounded-lg transition-all duration-300">
@@ -113,8 +120,9 @@ const Navbar = ({ onLogout }) => {
                     <hr className="my-2 border-gray-200/50" />
                     <button
                       onClick={onLogout}
-                      className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300"
                     >
+                      <LogOut className="w-4 h-4" />
                       Logout
                     </button>
                   </div>

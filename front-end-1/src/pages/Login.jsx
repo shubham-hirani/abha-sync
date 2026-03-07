@@ -1,40 +1,59 @@
 import React from 'react'
-import { Heart, Phone, Shield, ArrowRight } from 'lucide-react'
+import { Heart, Mail, Lock, Shield, ArrowRight, Eye, EyeOff, UserPlus, LogIn } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { BetaFeature } from '../components/BetaFeature'
 
-const Login = ({ onLogin }) => {
-  const [loginMethod, setLoginMethod] = React.useState('mobile') // 'mobile' or 'abha'
-  const [mobile, setMobile] = React.useState('')
-  const [abhaId, setAbhaId] = React.useState('')
-  const [otp, setOtp] = React.useState('')
-  const [showOtp, setShowOtp] = React.useState(false)
+const Login = () => {
+  const { login, signup, setError: setAuthError } = useAuth()
+
+  // Tab: 'email' | 'abha'
+  const [tab, setTab] = React.useState('email')
+  // Mode: 'login' | 'signup'
+  const [mode, setMode] = React.useState('login')
+
+  const [email, setEmail] = React.useState('')
+  const [password, setPassword] = React.useState('')
+  const [confirmPassword, setConfirmPassword] = React.useState('')
+  const [consentGiven, setConsentGiven] = React.useState(false)
+  const [showPassword, setShowPassword] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
 
-  const handleSendOtp = async () => {
-    if (loginMethod === 'mobile' && mobile.length === 10) {
-      setLoading(true)
-      // Mock OTP sending
-      setTimeout(() => {
-        setShowOtp(true)
-        setLoading(false)
-      }, 2000)
-    } else if (loginMethod === 'abha' && abhaId.length >= 10) {
-      setLoading(true)
-      // Mock ABHA verification
-      setTimeout(() => {
-        onLogin()
-        setLoading(false)
-      }, 2000)
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+
+    if (mode === 'signup') {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.')
+        return
+      }
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters.')
+        return
+      }
+    }
+
+    setLoading(true)
+    try {
+      if (mode === 'login') {
+        await login(email, password)
+      } else {
+        await signup(email, password, consentGiven)
+      }
+      // Auth context will update isAuthenticated → App.jsx redirects automatically
+    } catch (err) {
+      setError(err.message || 'An error occurred. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleVerifyOtp = () => {
-    if (otp.length === 6) {
-      setLoading(true)
-      setTimeout(() => {
-        onLogin()
-        setLoading(false)
-      }, 1500)
-    }
+  const switchMode = (newMode) => {
+    setMode(newMode)
+    setError('')
+    setPassword('')
+    setConfirmPassword('')
   }
 
   return (
@@ -51,190 +70,184 @@ const Login = ({ onLogin }) => {
               <p className="text-gray-600">Healthcare Dashboard</p>
             </div>
           </div>
-          
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome Back</h2>
-          <p className="text-gray-600">Sign in to access your health records</p>
+
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+          </h2>
+          <p className="text-gray-600">
+            {mode === 'login'
+              ? 'Sign in to access your health records'
+              : 'Register to start managing your health'}
+          </p>
         </div>
 
-        {/* Login Card */}
+        {/* Card */}
         <div className="glass border border-white/20 rounded-2xl p-8 shadow-2xl">
-          {/* Login Method Toggle */}
+          {/* Tab Toggle: Email / ABHA ID */}
           <div className="flex bg-gray-100/50 rounded-xl p-1 mb-6">
             <button
-              onClick={() => {
-                setLoginMethod('mobile')
-                setShowOtp(false)
-                setOtp('')
-              }}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-                loginMethod === 'mobile'
+              type="button"
+              onClick={() => { setTab('email'); setError('') }}
+              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${tab === 'email'
                   ? 'bg-white text-indigo-600 shadow-sm'
                   : 'text-gray-600 hover:text-gray-800'
-              }`}
+                }`}
             >
-              <Phone className="w-4 h-4 inline mr-2" />
-              Mobile OTP
+              <Mail className="w-4 h-4 inline mr-2" />
+              Email
             </button>
-            <button
-              onClick={() => {
-                setLoginMethod('abha')
-                setShowOtp(false)
-                setOtp('')
-              }}
-              className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${
-                loginMethod === 'abha'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              <Shield className="w-4 h-4 inline mr-2" />
-              ABHA ID
-            </button>
+
+            {/* ABHA ID tab — Beta */}
+            <BetaFeature>
+              <button
+                type="button"
+                className="flex-1 py-3 px-4 rounded-lg font-medium text-gray-600"
+              >
+                <Shield className="w-4 h-4 inline mr-2" />
+                ABHA ID
+                <span className="ml-2 text-xs font-bold bg-amber-400 text-white px-1.5 py-0.5 rounded-md">
+                  BETA
+                </span>
+              </button>
+            </BetaFeature>
           </div>
 
-          {/* Mobile Login */}
-          {loginMethod === 'mobile' && (
-            <div className="space-y-4">
-              {!showOtp ? (
+          {tab === 'email' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              {/* Email */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                  />
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    className="w-full pl-10 pr-10 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Confirm Password (signup only) */}
+              {mode === 'signup' && (
                 <>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Mobile Number
+                      Confirm Password
                     </label>
                     <div className="relative">
-                      <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                        +91
-                      </div>
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <input
-                        type="tel"
-                        value={mobile}
-                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                        placeholder="Enter mobile number"
-                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
+                        type={showPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your password"
+                        required
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
                       />
                     </div>
                   </div>
-                  
-                  <button
-                    onClick={handleSendOtp}
-                    disabled={mobile.length !== 10 || loading}
-                    className={`w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${
-                      loading ? 'cursor-wait' : ''
-                    }`}
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Sending OTP...
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        Send OTP
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    )}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Enter OTP
-                    </label>
-                    <p className="text-sm text-gray-500 mb-3">
-                      We've sent a 6-digit code to +91 {mobile}
-                    </p>
+
+                  {/* Consent checkbox */}
+                  <label className="flex items-start gap-3 cursor-pointer">
                     <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="Enter 6-digit OTP"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300 text-center text-lg font-mono tracking-widest"
+                      type="checkbox"
+                      checked={consentGiven}
+                      onChange={(e) => setConsentGiven(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
                     />
-                  </div>
-                  
-                  <button
-                    onClick={handleVerifyOtp}
-                    disabled={otp.length !== 6 || loading}
-                    className={`w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${
-                      loading ? 'cursor-wait' : ''
-                    }`}
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        Verifying...
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-2">
-                        Verify &amp; Continue
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    )}
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowOtp(false)
-                      setOtp('')
-                    }}
-                    className="w-full text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-                  >
-                    Change mobile number
-                  </button>
+                    <span className="text-sm text-gray-600">
+                      I consent to storing my health data securely in ABHA-Sync
+                    </span>
+                  </label>
                 </>
               )}
-            </div>
-          )}
 
-          {/* ABHA Login */}
-          {loginMethod === 'abha' && (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  ABHA ID
-                </label>
-                <input
-                  type="text"
-                  value={abhaId}
-                  onChange={(e) => setAbhaId(e.target.value)}
-                  placeholder="Enter your ABHA ID"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200/50 bg-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-300"
-                />
-              </div>
-              
+              {/* Submit */}
               <button
-                onClick={handleSendOtp}
-                disabled={abhaId.length < 10 || loading}
-                className={`w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed ${
-                  loading ? 'cursor-wait' : ''
-                }`}
+                type="submit"
+                disabled={loading}
+                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Verifying...
+                    {mode === 'login' ? 'Signing in…' : 'Creating account…'}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
-                    Verify ABHA ID
-                    <ArrowRight className="w-4 h-4" />
+                    {mode === 'login'
+                      ? <><LogIn className="w-4 h-4" /> Sign In</>
+                      : <><UserPlus className="w-4 h-4" /> Create Account</>
+                    }
                   </div>
                 )}
               </button>
-            </div>
-          )}
 
-          {/* Demo Login */}
-          <div className="mt-6 pt-6 border-t border-gray-200/50">
-            <p className="text-center text-sm text-gray-500 mb-3">For Demo:</p>
-            <button
-              onClick={onLogin}
-              className="w-full btn-secondary"
-            >
-              Continue as Guest
-            </button>
-          </div>
+              {/* Toggle mode */}
+              <div className="text-center pt-2">
+                {mode === 'login' ? (
+                  <p className="text-sm text-gray-600">
+                    Don't have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => switchMode('signup')}
+                      className="text-indigo-600 hover:text-indigo-700 font-medium"
+                    >
+                      Sign up
+                    </button>
+                  </p>
+                ) : (
+                  <p className="text-sm text-gray-600">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => switchMode('login')}
+                      className="text-indigo-600 hover:text-indigo-700 font-medium"
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                )}
+              </div>
+            </form>
+          )}
         </div>
 
         {/* Footer */}
