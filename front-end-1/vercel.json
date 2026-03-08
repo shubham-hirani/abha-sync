@@ -1,8 +1,8 @@
 {
     "rewrites": [
         {
-            "source": "/v2/places/(.*)",
-            "destination": "https://places.geo.us-east-1.amazonaws.com/v2/$1"
+            "source": "/aws-places/(.*)",
+            "destination": "https://places.geo.us-east-1.amazonaws.com/$1"
         },
         {
             "source": "/(.*)",
