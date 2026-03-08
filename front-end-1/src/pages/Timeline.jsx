@@ -18,8 +18,12 @@ import { BetaFeature } from '../components/BetaFeature'
 
 const Timeline = () => {
   const navigate = useNavigate()
-  const { records, loading, error } = useRecords()
+  const { records, loading, error, fetchRecords } = useRecords()
   const [selectedFilter, setSelectedFilter] = React.useState('all')
+
+  React.useEffect(() => {
+    fetchRecords()
+  }, [fetchRecords])
 
   // Create timeline items from real records
   const timelineData = useMemo(() => {
