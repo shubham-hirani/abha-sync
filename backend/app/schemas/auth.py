@@ -18,7 +18,6 @@ class RefreshTokenRequest(BaseModel):
 
 class UserOut(BaseModel):
     user_id: str
-    supabase_uid: str
     email: str
     abha_number: str | None
     preferred_language: str

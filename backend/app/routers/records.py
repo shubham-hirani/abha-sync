@@ -2,7 +2,7 @@ from typing import Any
 import uuid
 import json
 from datetime import datetime
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status, BackgroundTasks
 from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
@@ -15,6 +15,7 @@ from app.core.custom_ai_client import (
 )
 from app.core.textract_client import extract_text_from_pdf
 from app.core.config import get_settings
+from app.core.database import SessionLocal
 from app.middleware.auth import get_current_user_id
 from app.models.user import User
 from app.models.record import MedicalRecord
@@ -77,7 +78,7 @@ async def upload_record(
         )
 
     # Get the user
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    db_user = db.query(User).filter(User.user_id == uid).first()
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -118,7 +119,7 @@ async def list_records(
     db: Session = Depends(get_db),
 ):
     """List all medical records for the authenticated user."""
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    db_user = db.query(User).filter(User.user_id == uid).first()
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -135,49 +136,21 @@ async def list_records(
     )
 
 
-@router.post("/{record_id}/analyze", response_model=RecordOut)
-async def analyze_record(
-    record_id: Any,
-    uid: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
+def analyze_record_background(record_id: str, ai_service: str):
     """
-    Analyze a medical record using the configured AI service (AI_SERVICE env var).
-    PDFs are first processed by AWS Textract (async) to extract text, then sent
-    to the LLM as plain text. Images are sent directly as base64.
-    Returns cached result if already analyzed.
+    Background worker that runs the heavy extraction + LLM parsing task.
     """
-    settings = get_settings()
-
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
-    if not db_user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
-    record = (
-        db.query(MedicalRecord)
-        .filter(MedicalRecord.id == record_id, MedicalRecord.user_id == db_user.user_id)
-        .first()
-    )
-    if not record:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
-
-    # Return cached analysis if already done
-    if record.ai_analysis:
-        return _record_to_out(record)
-
-    ai_service = settings.ai_service.lower().strip()
-    is_pdf = record.content_type == "application/pdf"
-
+    db = SessionLocal()
     try:
+        record = db.query(MedicalRecord).filter(MedicalRecord.id == record_id).first()
+        if not record:
+            return
+
+        is_pdf = record.content_type == "application/pdf"
+        
         if is_pdf:
             # ── PDF path: Textract extracts text, then text-only LLM call ──
-            try:
-                extracted_text = extract_text_from_pdf(record.s3_key)
-            except RuntimeError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-                    detail=f"PDF text extraction failed: {str(e)}",
-                )
+            extracted_text = extract_text_from_pdf(record.s3_key)
 
             if ai_service == "bedrock":
                 analysis_result = analyze_medical_text(
@@ -191,10 +164,7 @@ async def analyze_record(
                 )
         else:
             # ── Image path: download bytes, send as base64 to LLM ──
-            try:
-                file_bytes = download_file_from_s3(record.s3_key)
-            except Exception:
-                raise HTTPException(status_code=500, detail="Could not retrieve file from storage")
+            file_bytes = download_file_from_s3(record.s3_key)
 
             if ai_service == "bedrock":
                 analysis_result = analyze_medical_image(
@@ -208,19 +178,65 @@ async def analyze_record(
                     content_type=record.content_type,
                     record_type=record.record_type,
                 )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"AI analysis failed: {str(e)}",
-        )
 
-    # Persist to DB
-    record.ai_analysis = json.dumps(analysis_result)
-    record.analyzed_at = datetime.utcnow()
+        # Persist success
+        record.ai_analysis = json.dumps(analysis_result)
+        record.analyzed_at = datetime.utcnow()
+        record.ai_status = "completed"
+        db.commit()
+
+    except Exception as e:
+        print(f"Background AI analysis failed for record {record_id}: {str(e)}")
+        record = db.query(MedicalRecord).filter(MedicalRecord.id == record_id).first()
+        if record:
+            record.ai_status = "failed"
+            db.commit()
+    finally:
+        db.close()
+
+
+@router.post("/{record_id}/analyze", response_model=RecordOut)
+async def analyze_record(
+    record_id: Any,
+    background_tasks: BackgroundTasks,
+    uid: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """
+    Triggers AI analysis of a medical record in the background.
+    Returns immediately with ai_status = 'pending'.
+    """
+    settings = get_settings()
+
+    db_user = db.query(User).filter(User.user_id == uid).first()
+    if not db_user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    record = (
+        db.query(MedicalRecord)
+        .filter(MedicalRecord.id == record_id, MedicalRecord.user_id == db_user.user_id)
+        .first()
+    )
+    if not record:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Record not found")
+
+    # Return cached analysis if already done successfully
+    if record.ai_analysis and record.ai_status == "completed":
+        return _record_to_out(record)
+
+    # If already pending, just return it
+    if record.ai_status == "pending":
+         return _record_to_out(record)
+
+    ai_service = settings.ai_service.lower().strip()
+
+    # Set status to pending immediately
+    record.ai_status = "pending"
     db.commit()
     db.refresh(record)
+
+    # Kick off background task
+    background_tasks.add_task(analyze_record_background, str(record.id), ai_service)
 
     return _record_to_out(record)
 
@@ -235,19 +251,20 @@ async def get_record_file(
     Proxy endpoint: streams the file from S3 through the backend.
     Uses token as a query param so <img src="..."> tags can authenticate.
     """
-    from app.core.supabase_client import get_supabase_client
+    from app.core.security import decode_token
 
     # Validate token manually (since <img> tags can't send Authorization headers)
     try:
-        supabase = get_supabase_client()
-        res = supabase.auth.get_user(token)
-        if not res or not res.user:
+        payload = decode_token(token)
+        if not payload or payload.get("type") == "refresh":
             raise HTTPException(status_code=401, detail="Invalid token")
-        uid = res.user.id
+        uid = payload.get("sub")
+        if not uid:
+             raise HTTPException(status_code=401, detail="Invalid token: no user")
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    db_user = db.query(User).filter(User.user_id == uid).first()
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -281,7 +298,7 @@ async def get_record(
     db: Session = Depends(get_db),
 ):
     """Get a single medical record metadata."""
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    db_user = db.query(User).filter(User.user_id == uid).first()
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -303,7 +320,7 @@ async def delete_record(
     db: Session = Depends(get_db),
 ):
     """Delete a medical record from S3 and database."""
-    db_user = db.query(User).filter(User.supabase_uid == uid).first()
+    db_user = db.query(User).filter(User.user_id == uid).first()
     if not db_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
