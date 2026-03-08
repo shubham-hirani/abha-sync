@@ -218,7 +218,7 @@ def analyze_medical_image(
         "stream": False,
     }
 
-    response = requests.post(NVIDIA_INVOKE_URL, headers=headers, json=payload, timeout=120)
+    response = requests.post(NVIDIA_INVOKE_URL, headers=headers, json=payload, timeout=1200)
     response.raise_for_status()
 
     response_data = response.json()

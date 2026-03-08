@@ -12,6 +12,7 @@ class RecordOut(BaseModel):
     uploaded_at: str | None
     preview_url: str
     ai_analysis: str | None = None
+    ai_status: str | None = None
     analyzed_at: str | None = None
 
 

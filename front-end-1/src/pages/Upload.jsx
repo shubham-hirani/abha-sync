@@ -169,12 +169,10 @@ const Upload = () => {
           <div className="mt-6 text-center">
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-xl mb-4">
               <CheckCircle className="w-5 h-5" />
-              {uploadedRecord.ai_analysis ? 'Analysis Complete!' : 'Upload Complete!'}
+              Upload Complete!
             </div>
             <p className="text-gray-600 mb-4">
-              {uploadedRecord.ai_analysis
-                ? 'Your document has been analyzed. Review the extracted information.'
-                : 'Your document has been uploaded. Review and manage the record.'}
+              Your document has been sent for analysis. You can review the progress.
             </p>
             <button
               onClick={() => navigate('/review-extraction')}
@@ -233,11 +231,13 @@ const Upload = () => {
                     </p>
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${record.ai_analysis
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-amber-100 text-amber-700'
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${record.ai_status === 'completed'
+                    ? 'bg-green-100 text-green-700'
+                    : record.ai_status === 'failed'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-blue-100 text-blue-700'
                   }`}>
-                  {record.ai_analysis ? 'Analyzed' : 'Pending'}
+                  {record.ai_status === 'completed' ? 'Analyzed' : record.ai_status === 'failed' ? 'Failed' : 'Analyzing'}
                 </span>
               </div>
             ))}

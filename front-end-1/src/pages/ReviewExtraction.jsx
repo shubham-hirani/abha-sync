@@ -51,9 +51,28 @@ const ReviewExtraction = () => {
     fetchRecord()
   }, [navigate])
 
+  useEffect(() => {
+    let intervalId;
+    if (record && record.ai_status === 'pending') {
+      intervalId = setInterval(async () => {
+        try {
+          const data = await recordsApi.get(record.id)
+          setRecord(data)
+          if (data.ai_status === 'completed' || data.ai_status === 'failed') {
+            clearInterval(intervalId)
+          }
+        } catch (err) {
+          console.error("Polling error:", err)
+        }
+      }, 5000)
+    }
+    return () => clearInterval(intervalId)
+  }, [record])
+
   const handleRetryAnalysis = async () => {
     if (!record) return
     setRetrying(true)
+    setError('')
     try {
       const analyzed = await recordsApi.analyze(record.id)
       setRecord(analyzed)
@@ -174,8 +193,18 @@ const ReviewExtraction = () => {
         </div>
       </div>
 
-      {/* Analysis pending / failed state with Retry */}
-      {!record.ai_analysis ? (
+      {/* Analysis states */}
+      {record.ai_status === 'pending' ? (
+        <div className="p-10 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 text-center">
+          <div className="flex justify-center mb-6">
+            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          </div>
+          <h3 className="font-semibold mb-2 text-xl">AI Analysis in Progress...</h3>
+          <p className="text-blue-700 max-w-md mx-auto">
+            Please wait while our AI extracts information from your medical document. This usually takes around 15–30 seconds.
+          </p>
+        </div>
+      ) : record.ai_status === 'failed' || (!record.ai_analysis && record.ai_status !== 'completed') ? (
         <div className="p-6 bg-amber-50 text-amber-800 rounded-xl border border-amber-200 text-center">
           <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
           <h3 className="font-semibold mb-2 text-lg">Analysis Pending or Unavailable</h3>
@@ -191,7 +220,7 @@ const ReviewExtraction = () => {
             {retrying ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Analyzing with AI…
+                Triggering AI...
               </>
             ) : (
               <>
@@ -303,8 +332,8 @@ const ReviewExtraction = () => {
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-bold text-amber-900">{finding.parameter}</p>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${finding.severity === 'severe' ? 'bg-red-100 text-red-700' :
-                          finding.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
-                            'bg-amber-100 text-amber-700'
+                        finding.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
+                          'bg-amber-100 text-amber-700'
                         }`}>
                         {finding.severity?.toUpperCase()}
                       </span>
@@ -336,16 +365,16 @@ const ReviewExtraction = () => {
 
                   return (
                     <div key={index} className={`p-5 rounded-xl border ${isNormal ? 'bg-gray-50/50 border-gray-200/50' :
-                        isCritical ? 'bg-red-50 border-red-200' :
-                          'bg-orange-50/50 border-orange-200'
+                      isCritical ? 'bg-red-50 border-red-200' :
+                        'bg-orange-50/50 border-orange-200'
                       }`}>
                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                         <div>
                           <h3 className="text-lg font-bold text-gray-800">{param.name}</h3>
                           <div className="flex items-center gap-2 mt-1">
                             <span className={`px-2 py-0.5 text-xs font-bold rounded flex items-center gap-1 ${isNormal ? 'bg-green-100 text-green-700' :
-                                isCritical ? 'bg-red-200 text-red-800' :
-                                  'bg-orange-200 text-orange-800'
+                              isCritical ? 'bg-red-200 text-red-800' :
+                                'bg-orange-200 text-orange-800'
                               }`}>
                               {param.status?.toUpperCase()}
                             </span>
@@ -356,8 +385,8 @@ const ReviewExtraction = () => {
                         </div>
                         <div className="text-right whitespace-nowrap">
                           <p className={`text-2xl font-bold ${isNormal ? 'text-gray-800' :
-                              isCritical ? 'text-red-700' :
-                                'text-orange-700'
+                            isCritical ? 'text-red-700' :
+                              'text-orange-700'
                             }`}>{param.value}</p>
                         </div>
                       </div>

@@ -15,8 +15,8 @@ class User(Base):
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )
-    supabase_uid: Mapped[str] = mapped_column(String(36), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     abha_number: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     preferred_language: Mapped[str] = mapped_column(String(5), default="en")
     consent_given: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -30,7 +30,6 @@ class User(Base):
     def to_dict(self) -> dict:
         return {
             "user_id": str(self.user_id),
-            "supabase_uid": self.supabase_uid,
             "email": self.email,
             "abha_number": self.abha_number,
             "preferred_language": self.preferred_language,

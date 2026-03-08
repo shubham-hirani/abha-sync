@@ -31,7 +31,17 @@ with engine.connect() as conn:
         )
         conn.execute(
             __import__('sqlalchemy').text(
-                "ALTER TABLE medical_records ADD COLUMN IF NOT EXISTS analyzed_at TIMESTAMP WITH TIME ZONE"
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS hashed_password VARCHAR(255)"
+            )
+        )
+        conn.execute(
+            __import__('sqlalchemy').text(
+                "ALTER TABLE users ALTER COLUMN supabase_uid DROP NOT NULL"
+            )
+        )
+        conn.execute(
+            __import__('sqlalchemy').text(
+                "ALTER TABLE medical_records ADD COLUMN IF NOT EXISTS ai_status VARCHAR(20) DEFAULT 'none'"
             )
         )
         conn.commit()
