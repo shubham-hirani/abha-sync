@@ -88,8 +88,10 @@ export default function JanAushadhiMap() {
             const ObjectParams = new URLSearchParams({
                 key: apiKey
             });
+            // Hitting the proxy at /aws-places, which gets rewritten.
+            // (e.g., Localhost intercepts, and Vercel rewrites to the aws url)
             const response = await fetch(
-                `/v2/places/v2/search/text?${ObjectParams.toString()}`,
+                `/aws-places/v2/search/text?${ObjectParams.toString()}`,
                 {
                     method: "POST",
                     headers: {

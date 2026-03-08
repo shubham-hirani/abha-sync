@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/v2/places': {
+      '/aws-places': {
         target: 'https://places.geo.us-east-1.amazonaws.com', // Will be customized per-region if needed
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/v2\/places/, ''),
+        rewrite: (path) => path.replace(/^\/aws-places/, ''),
       },
     },
   },
