@@ -9,7 +9,8 @@ import {
   LogOut,
   Heart,
   X,
-  Menu
+  Menu,
+  MapPin
 } from 'lucide-react'
 import { BetaBlock } from './BetaFeature'
 
@@ -20,6 +21,7 @@ const Sidebar = ({ onLogout }) => {
 
   const menuItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/nearest-kendra', icon: MapPin, label: 'Nearest Kendra' },
     { path: '/upload', icon: Upload, label: 'Upload' },
     { path: '/timeline', icon: Clock, label: 'Timeline' },
     { path: '/reminders', icon: Bell, label: 'Reminders' },

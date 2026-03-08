@@ -1,6 +1,10 @@
 {
     "rewrites": [
         {
+            "source": "/v2/places/(.*)",
+            "destination": "https://places.geo.us-east-1.amazonaws.com/v2/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

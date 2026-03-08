@@ -19,6 +19,7 @@ import Timeline from './pages/Timeline'
 import Consent from './pages/Consent'
 import Reminders from './pages/Reminders'
 import Settings from './pages/Settings'
+import NearestKendra from './pages/NearestKendra'
 
 // ─── Loading Screen ──────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -65,6 +66,7 @@ function AppInner() {
                   <Route path="/upload" element={<Upload />} />
                   <Route path="/review-extraction" element={<ReviewExtraction />} />
                   <Route path="/cost-savings" element={<CostSavings />} />
+                  <Route path="/nearest-kendra" element={<NearestKendra />} />
                   <Route path="/report-explanation" element={<ReportExplanation />} />
                   <Route path="/timeline" element={<Timeline />} />
                   <Route path="/consent" element={<Consent />} />
