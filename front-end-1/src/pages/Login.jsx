@@ -14,7 +14,6 @@ const Login = () => {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [confirmPassword, setConfirmPassword] = React.useState('')
-  const [consentGiven, setConsentGiven] = React.useState(false)
   const [showPassword, setShowPassword] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -39,7 +38,7 @@ const Login = () => {
       if (mode === 'login') {
         await login(email, password)
       } else {
-        await signup(email, password, consentGiven)
+        await signup(email, password)
       }
       // Auth context will update isAuthenticated → App.jsx redirects automatically
     } catch (err) {
@@ -89,8 +88,8 @@ const Login = () => {
               type="button"
               onClick={() => { setTab('email'); setError('') }}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-all duration-300 ${tab === 'email'
-                  ? 'bg-white text-indigo-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-800'
+                ? 'bg-white text-indigo-600 shadow-sm'
+                : 'text-gray-600 hover:text-gray-800'
                 }`}
             >
               <Mail className="w-4 h-4 inline mr-2" />
@@ -183,19 +182,6 @@ const Login = () => {
                       />
                     </div>
                   </div>
-
-                  {/* Consent checkbox */}
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={consentGiven}
-                      onChange={(e) => setConsentGiven(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    />
-                    <span className="text-sm text-gray-600">
-                      I consent to storing my health data securely in ABHA-Sync
-                    </span>
-                  </label>
                 </>
               )}
 
